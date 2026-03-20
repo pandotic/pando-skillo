@@ -253,7 +253,7 @@
       const toggle = useCallback(id => setSelected(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; }), []);
 
       const loginWithGitHub = () => {
-        const clientId = 'YOUR_GITHUB_CLIENT_ID'; // replaced by Netlify env at deploy time
+        const clientId = 'Ov23lictx0nzL5xiXx2D'; // replaced by Netlify env at deploy time
         window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&scope=repo`;
       };
 
