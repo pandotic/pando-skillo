@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Skills Store</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: { 50: '#faf5ff', 100: '#f3e8ff', 200: '#e9d5ff', 500: '#a855f7', 600: '#9333ea', 700: '#7e22ce', 800: '#6b21a8', 900: '#581c87' },
+            surface: { 50: '#fafafa', 100: '#f4f4f5', 200: '#e4e4e7', 300: '#d4d4d8', 700: '#3f3f46', 800: '#27272a', 900: '#18181b' }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .fade-in { animation: fadeIn 0.25s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    .card-hover { transition: all 0.18s ease; }
+    .card-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 24px -4px rgba(0,0,0,0.09); }
+    .selected-ring { box-shadow: 0 0 0 2px #9333ea, 0 8px 24px -4px rgba(147,51,234,0.18); }
+  </style>
+
+  <!--
+    ╔═══════════════════════════════════════════════════════╗
+    ║              SKILLS STORE CONFIG                      ║
+    ║  Set REPO_OWNER and REPO_NAME to match your GitHub    ║
+    ║  repo. This is the same repo where skills/ lives.     ║
+    ╚═══════════════════════════════════════════════════════╝
+  -->
+  <script>
+    window.SKILLS_CONFIG = {
+      repoOwner: 'pandotic',
+      repoName:  'pando-skills',
+      branch:    'main',
+    };
+  </script>
+</head>
+<body class="bg-surface-50 min-h-screen">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useCallback, useMemo } = React;
+
+    // ─── Repo config ─────────────────────────────────────────────────────────
+    const CFG = window.SKILLS_CONFIG;
+    const RAW = (path) =>
+      `https://raw.githubusercontent.com/${CFG.repoOwner}/${CFG.repoName}/${CFG.branch}/${path}`;
+    const MANIFEST_URL = RAW('skills-manifest.json');
+
+    // ─── Icons ────────────────────────────────────────────────────────────────
+    const Icons = {
+      FileText:     () => <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>,
+      FileCheck:    () => <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="m9 15 2 2 4-4"/></svg>,
+      Presentation: () => <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h20"/><path d="M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3"/><path d="m7 21 5-5 5 5"/></svg>,
+      Table:        () => <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v18"/><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/></svg>,
+      Bot:          () => <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>,
+      Wrench:       () => <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>,
+      Clock:        () => <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
+      Package:      () => <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>,
+      Search:       () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>,
+      Github:       () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>,
+      Check:        () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
+      GitPR:        () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><path d="M6 9v12"/></svg>,
+      X:            () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>,
+      Loader:       () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>,
+      ExternalLink: () => <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>,
+      AlertCircle:  () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>,
+    };
+    const getIcon = (name) => { const I = Icons[name] || Icons.Package; return <I />; };
+
+    const CAT_COLORS = {
+      'Documents':       { bg: 'bg-blue-50',   text: 'text-blue-700',   icon: 'text-blue-500'   },
+      'AI & Automation': { bg: 'bg-purple-50', text: 'text-purple-700', icon: 'text-purple-500' },
+      'Developer Tools': { bg: 'bg-amber-50',  text: 'text-amber-700',  icon: 'text-amber-500'  },
+    };
+    const defaultColors = { bg: 'bg-surface-100', text: 'text-surface-700', icon: 'text-surface-500' };
+
+    // ─── Skill Card ───────────────────────────────────────────────────────────
+    function SkillCard({ skill, selected, onToggle }) {
+      const c = CAT_COLORS[skill.category] || defaultColors;
+      return (
+        <div
+          onClick={() => onToggle(skill.id)}
+          className={`card-hover fade-in cursor-pointer rounded-2xl border-2 bg-white p-5 ${selected ? 'selected-ring border-brand-500' : 'border-surface-200 hover:border-surface-300'}`}
+        >
+          <div className="flex items-start justify-between mb-3">
+            <div className={`p-2.5 rounded-xl ${c.bg} ${c.icon}`}>{getIcon(skill.icon)}</div>
+            <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${selected ? 'bg-brand-600 border-brand-600 text-white' : 'border-surface-300 bg-white'}`}>
+              {selected && <Icons.Check />}
+            </div>
+          </div>
+          <h3 className="font-semibold text-surface-900 mb-1">{skill.name}</h3>
+          <span className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full ${c.bg} ${c.text} mb-2`}>{skill.category}</span>
+          <p className="text-sm text-surface-700 leading-relaxed mb-3 line-clamp-3">{skill.description}</p>
+          <div className="flex flex-wrap gap-1.5">
+            {skill.triggers.slice(0, 4).map(t => (
+              <span key={t} className="text-xs bg-surface-100 text-surface-600 px-2 py-0.5 rounded font-mono">{t}</span>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // ─── Repo Picker ──────────────────────────────────────────────────────────
+    function RepoPickerModal({ repos, loading, onSelect, onClose }) {
+      const [q, setQ] = useState('');
+      const filtered = repos.filter(r => r.full_name.toLowerCase().includes(q.toLowerCase()));
+      return (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[70vh] flex flex-col fade-in" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-5 border-b border-surface-100">
+              <div>
+                <h3 className="font-semibold text-lg">Select target repository</h3>
+                <p className="text-xs text-surface-700 mt-0.5">Skills will be added to <code className="bg-surface-100 px-1 py-0.5 rounded">.claude/skills/</code> via pull request</p>
+              </div>
+              <button onClick={onClose} className="text-surface-500 hover:text-surface-900 p-1"><Icons.X /></button>
+            </div>
+            <div className="p-3 border-b border-surface-100">
+              <div className="relative">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-surface-400"><Icons.Search /></div>
+                <input autoFocus type="text" placeholder="Search repos..." value={q} onChange={e => setQ(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 border border-surface-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent" />
+              </div>
+            </div>
+            <div className="overflow-y-auto flex-1 p-2">
+              {loading
+                ? <div className="flex items-center justify-center py-10 text-surface-500"><Icons.Loader /><span className="ml-2 text-sm">Loading repositories…</span></div>
+                : filtered.length === 0
+                  ? <p className="text-center py-10 text-sm text-surface-500">No repositories found</p>
+                  : filtered.map(r => (
+                    <button key={r.id} onClick={() => onSelect(r)}
+                      className="w-full text-left px-4 py-2.5 rounded-xl hover:bg-surface-50 flex items-center gap-3 transition-colors">
+                      <span className="text-surface-400"><Icons.Github /></span>
+                      <div className="min-w-0">
+                        <p className="font-medium text-sm text-surface-900 truncate">{r.full_name}</p>
+                        {r.description && <p className="text-xs text-surface-500 truncate">{r.description}</p>}
+                      </div>
+                    </button>
+                  ))
+              }
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ─── Success Modal ────────────────────────────────────────────────────────
+    function SuccessModal({ prUrl, onClose }) {
+      return (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 text-center fade-in" onClick={e => e.stopPropagation()}>
+            <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <h3 className="text-lg font-semibold text-surface-900 mb-1">Pull request opened</h3>
+            <p className="text-sm text-surface-600 mb-6">Review and merge to add the skills to your project.</p>
+            <div className="flex gap-2 justify-center">
+              <a href={prUrl} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 bg-surface-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-surface-800 transition-colors">
+                View PR <Icons.ExternalLink />
+              </a>
+              <button onClick={onClose} className="px-4 py-2 rounded-lg border border-surface-200 text-sm font-medium text-surface-700 hover:bg-surface-50 transition-colors">Close</button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ─── Config Warning ───────────────────────────────────────────────────────
+    function ConfigWarning() {
+      return (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 flex gap-3 fade-in">
+          <span className="text-amber-500 flex-shrink-0 mt-0.5"><Icons.AlertCircle /></span>
+          <div>
+            <p className="text-sm font-medium text-amber-900">Repo not configured</p>
+            <p className="text-xs text-amber-700 mt-0.5">
+              Edit <code className="bg-amber-100 px-1 rounded">public/index.html</code> and set <code className="bg-amber-100 px-1 rounded">repoOwner</code> and <code className="bg-amber-100 px-1 rounded">repoName</code> in the <code className="bg-amber-100 px-1 rounded">SKILLS_CONFIG</code> block near the top of the file.
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    // ─── Main App ─────────────────────────────────────────────────────────────
+    function App() {
+      const [skills, setSkills]           = useState([]);
+      const [loadingSkills, setLoadingSkills] = useState(true);
+      const [selected, setSelected]       = useState(new Set());
+      const [search, setSearch]           = useState('');
+      const [catFilter, setCatFilter]     = useState('All');
+      const [ghToken, setGhToken]         = useState(localStorage.getItem('gh_token') || '');
+      const [ghUser, setGhUser]           = useState(null);
+      const [repos, setRepos]             = useState([]);
+      const [reposLoading, setReposLoading] = useState(false);
+      const [showRepoPicker, setShowRepoPicker] = useState(false);
+      const [targetRepo, setTargetRepo]   = useState(null);
+      const [creating, setCreating]       = useState(false);
+      const [prUrl, setPrUrl]             = useState(null);
+      const [error, setError]             = useState(null);
+      const isConfigured = CFG.repoOwner !== 'YOUR_ORG_OR_USERNAME';
+
+      // Load skills manifest from the same GitHub repo (raw content)
+      useEffect(() => {
+        if (!isConfigured) { setLoadingSkills(false); return; }
+        fetch(MANIFEST_URL)
+          .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+          .then(data => { setSkills(data); setLoadingSkills(false); })
+          .catch(err => { setError(`Could not load skills manifest from GitHub (${err.message}). Check that repoOwner/repoName are correct and the repo is public.`); setLoadingSkills(false); });
+      }, [isConfigured]);
+
+      // Handle OAuth callback code
+      useEffect(() => {
+        const p = new URLSearchParams(window.location.search);
+        const code = p.get('code');
+        if (code && !ghToken) {
+          window.history.replaceState({}, '', '/');
+          fetch('/.netlify/functions/github-auth', { method: 'POST', body: JSON.stringify({ code }) })
+            .then(r => r.json())
+            .then(d => { if (d.access_token) { setGhToken(d.access_token); localStorage.setItem('gh_token', d.access_token); } else setError('GitHub login failed — check Netlify function logs.'); })
+            .catch(() => setError('Auth error — make sure the Netlify function is deployed.'));
+        }
+      }, []);
+
+      // Verify + load GitHub user
+      useEffect(() => {
+        if (!ghToken) return;
+        fetch('https://api.github.com/user', { headers: { Authorization: `token ${ghToken}` } })
+          .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+          .then(setGhUser)
+          .catch(() => { setGhToken(''); localStorage.removeItem('gh_token'); });
+      }, [ghToken]);
+
+      const categories = useMemo(() => ['All', ...new Set(skills.map(s => s.category))], [skills]);
+
+      const filtered = useMemo(() => skills.filter(s => {
+        const q = search.toLowerCase();
+        const matchQ = !q || s.name.toLowerCase().includes(q) || s.description.toLowerCase().includes(q) || s.triggers.some(t => t.toLowerCase().includes(q));
+        const matchC = catFilter === 'All' || s.category === catFilter;
+        return matchQ && matchC;
+      }), [skills, search, catFilter]);
+
+      const toggle = useCallback(id => setSelected(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; }), []);
+
+      const loginWithGitHub = () => {
+        const clientId = 'YOUR_GITHUB_CLIENT_ID'; // replaced by Netlify env at deploy time
+        window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&scope=repo`;
+      };
+
+      const loadRepos = async () => {
+        setShowRepoPicker(true);
+        setReposLoading(true);
+        try {
+          const r = await fetch('https://api.github.com/user/repos?per_page=100&sort=updated&affiliation=owner,collaborator,organization_member', { headers: { Authorization: `token ${ghToken}` } });
+          const data = await r.json();
+          setRepos(data.filter(r => r.permissions?.push));
+        } catch { setError('Failed to load repositories'); }
+        setReposLoading(false);
+      };
+
+      const createPR = async () => {
+        if (!targetRepo || selected.size === 0) return;
+        setCreating(true); setError(null);
+        try {
+          const h = { Authorization: `token ${ghToken}`, 'Content-Type': 'application/json' };
+          const base = `https://api.github.com/repos/${targetRepo.full_name}`;
+
+          // Get default branch SHA
+          const { default_branch } = await fetch(base, { headers: h }).then(r => r.json());
+          const { object: { sha } } = await fetch(`${base}/git/ref/heads/${default_branch}`, { headers: h }).then(r => r.json());
+
+          // Create branch
+          const branch = `add-skills-${Date.now()}`;
+          await fetch(`${base}/git/refs`, { method: 'POST', headers: h, body: JSON.stringify({ ref: `refs/heads/${branch}`, sha }) });
+
+          // Add each skill — content fetched directly from this repo
+          const selectedSkills = skills.filter(s => selected.has(s.id));
+          for (const skill of selectedSkills) {
+            // Fetch SKILL.md from the skills-store repo (raw GitHub content)
+            const skillContent = await fetch(RAW(`skills/${skill.id}/SKILL.md`)).then(r => r.ok ? r.text() : `---\nname: ${skill.id}\ndescription: "${skill.description}"\n---\n\n# ${skill.name}\n\n${skill.description}\n`);
+            const content = btoa(unescape(encodeURIComponent(skillContent)));
+            await fetch(`${base}/contents/.claude/skills/${skill.id}/SKILL.md`, {
+              method: 'PUT', headers: h,
+              body: JSON.stringify({ message: `Add ${skill.name} skill`, content, branch }),
+            });
+          }
+
+          // Open PR
+          const names = selectedSkills.map(s => s.name).join(', ');
+          const body = `## Skills added\n\n${selectedSkills.map(s => `- **${s.name}** — ${s.description}`).join('\n')}\n\n---\n*Deployed via [Skills Store](${window.location.origin}) from [\`${CFG.repoOwner}/${CFG.repoName}\`](https://github.com/${CFG.repoOwner}/${CFG.repoName})*`;
+          const pr = await fetch(`${base}/pulls`, {
+            method: 'POST', headers: h,
+            body: JSON.stringify({ title: `Add skills: ${names}`, body, head: branch, base: default_branch }),
+          }).then(r => r.json());
+
+          pr.html_url ? setPrUrl(pr.html_url) : setError(pr.message || 'PR creation failed');
+        } catch (e) { setError(e.message); }
+        setCreating(false);
+      };
+
+      // ── Render ──────────────────────────────────────────────────────────────
+      return (
+        <div className="min-h-screen pb-28">
+          {/* Header */}
+          <header className="bg-white border-b border-surface-200 sticky top-0 z-40 backdrop-blur">
+            <div className="max-w-5xl mx-auto px-5 py-3.5 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="bg-brand-600 text-white p-2 rounded-xl"><Icons.Package /></div>
+                <div>
+                  <h1 className="font-bold text-surface-900 leading-none">Skills Store</h1>
+                  {isConfigured && <p className="text-xs text-surface-500 mt-0.5">{CFG.repoOwner}/{CFG.repoName}</p>}
+                </div>
+              </div>
+              {ghUser
+                ? <div className="flex items-center gap-2">
+                    <img src={ghUser.avatar_url} className="w-7 h-7 rounded-full" />
+                    <span className="text-sm font-medium text-surface-800 hidden sm:inline">{ghUser.login}</span>
+                    <button onClick={() => { setGhToken(''); setGhUser(null); localStorage.removeItem('gh_token'); }} className="text-xs text-surface-400 hover:text-surface-700 ml-1">Sign out</button>
+                  </div>
+                : <button onClick={loginWithGitHub} className="inline-flex items-center gap-2 bg-surface-900 text-white px-3.5 py-2 rounded-lg text-sm font-medium hover:bg-surface-800 transition-colors">
+                    <Icons.Github /> Sign in with GitHub
+                  </button>
+              }
+            </div>
+          </header>
+
+          <main className="max-w-5xl mx-auto px-5 py-7">
+            {!isConfigured && <ConfigWarning />}
+
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-800 rounded-xl p-3.5 mb-5 flex items-start gap-3 fade-in">
+                <span className="text-red-400 mt-0.5 flex-shrink-0"><Icons.AlertCircle /></span>
+                <p className="text-sm flex-1">{error}</p>
+                <button onClick={() => setError(null)} className="text-red-400 hover:text-red-700 flex-shrink-0"><Icons.X /></button>
+              </div>
+            )}
+
+            {/* Search + filter */}
+            <div className="flex flex-col sm:flex-row gap-3 mb-5">
+              <div className="relative flex-1">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-surface-400"><Icons.Search /></div>
+                <input type="text" placeholder="Search by name, description, or trigger keyword…" value={search} onChange={e => setSearch(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2.5 border border-surface-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent bg-white" />
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                {categories.map(c => (
+                  <button key={c} onClick={() => setCatFilter(c)}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${catFilter === c ? 'bg-brand-600 text-white' : 'bg-white border border-surface-200 text-surface-600 hover:border-surface-300'}`}>{c}</button>
+                ))}
+              </div>
+            </div>
+
+            {/* Count + select-all */}
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-sm text-surface-500">
+                {loadingSkills ? 'Loading skills…' : `${filtered.length} skill${filtered.length !== 1 ? 's' : ''}`}
+                {selected.size > 0 && <span className="text-brand-600 font-medium"> · {selected.size} selected</span>}
+              </p>
+              {filtered.length > 0 && (
+                <button onClick={() => setSelected(selected.size === filtered.length ? new Set() : new Set(filtered.map(s => s.id)))}
+                  className="text-sm text-brand-600 hover:text-brand-700 font-medium">
+                  {selected.size === filtered.length ? 'Deselect all' : 'Select all'}
+                </button>
+              )}
+            </div>
+
+            {/* Grid */}
+            {loadingSkills
+              ? <div className="flex items-center justify-center py-20 text-surface-400 gap-2"><Icons.Loader /><span className="text-sm">Loading from GitHub…</span></div>
+              : <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filtered.map(s => <SkillCard key={s.id} skill={s} selected={selected.has(s.id)} onToggle={toggle} />)}
+                </div>
+            }
+          </main>
+
+          {/* Deploy bar */}
+          {selected.size > 0 && (
+            <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur border-t border-surface-200 shadow-xl z-40 fade-in">
+              <div className="max-w-5xl mx-auto px-5 py-3.5 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <span className="bg-brand-100 text-brand-700 font-semibold text-sm px-2.5 py-0.5 rounded-full">{selected.size}</span>
+                  <span className="text-sm text-surface-600 hidden sm:inline">skill{selected.size > 1 ? 's' : ''} ready to deploy</span>
+                  {targetRepo && (
+                    <button onClick={loadRepos}
+                      className="inline-flex items-center gap-1.5 bg-surface-100 px-3 py-1.5 rounded-lg text-sm font-medium text-surface-800 hover:bg-surface-200 max-w-[180px] truncate">
+                      <Icons.Github /><span className="truncate">{targetRepo.full_name}</span>
+                    </button>
+                  )}
+                </div>
+                <div className="flex-shrink-0">
+                  {!ghUser
+                    ? <button onClick={loginWithGitHub} className="inline-flex items-center gap-2 bg-surface-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-surface-800 transition-colors"><Icons.Github />Sign in to deploy</button>
+                    : !targetRepo
+                      ? <button onClick={loadRepos} className="inline-flex items-center gap-2 bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700 transition-colors"><Icons.Github />Choose repo</button>
+                      : <button onClick={createPR} disabled={creating} className="inline-flex items-center gap-2 bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700 disabled:opacity-60 transition-colors">
+                          {creating ? <><Icons.Loader />Creating PR…</> : <><Icons.GitPR />Create pull request</>}
+                        </button>
+                  }
+                </div>
+              </div>
+            </div>
+          )}
+
+          {showRepoPicker && <RepoPickerModal repos={repos} loading={reposLoading} onSelect={r => { setTargetRepo(r); setShowRepoPicker(false); }} onClose={() => setShowRepoPicker(false)} />}
+          {prUrl && <SuccessModal prUrl={prUrl} onClose={() => setPrUrl(null)} />}
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
