@@ -1,11 +1,18 @@
 ---
 name: skill-creator
+version: "1.0.0"
 description: Create new skills, modify and improve existing skills, and measure skill performance. Use when users want to create a skill from scratch, edit, or optimize an existing skill, run evals to test a skill, benchmark skill performance with variance analysis, or optimize a skill's description for better triggering accuracy.
 ---
 
 # Skill Creator
 
 A skill for creating new skills and iteratively improving them.
+
+> **Tooling dependencies:** This skill references helper scripts (`scripts.aggregate_benchmark`,
+> `scripts.run_loop`, `scripts.package_skill`) and an eval viewer (`eval-viewer/generate_review.py`)
+> that live alongside the skill-creator in its full distribution. If these scripts are not available
+> in your environment, the core workflow (draft, test manually, iterate) still works — the scripts
+> automate the benchmarking and optimization steps but are not required for basic skill creation.
 
 At a high level, the process of creating a skill goes like this:
 

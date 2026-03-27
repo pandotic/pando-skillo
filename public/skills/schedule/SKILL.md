@@ -1,5 +1,6 @@
 ---
 name: schedule
+version: "1.0.0"
 description: "Create a scheduled task that can be run on demand or automatically on an interval."
 ---
 
