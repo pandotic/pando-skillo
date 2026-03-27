@@ -1,5 +1,6 @@
 ---
 name: mindpal
+version: "1.0.0"
 description: Build AI agents and multi-agent workflows on MindPal.space. Use when creating agents, configuring system instructions, designing workflows, setting up knowledge sources, or troubleshooting MindPal builds. Covers agent configuration (system instructions, brand voice, tools, MCP), workflow nodes (Agent, Loop, Router, Evaluator-Optimizer, etc.), variables, chatbot publishing, and common issues.
 ---
 
