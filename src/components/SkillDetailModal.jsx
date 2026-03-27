@@ -2,9 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { Icons, getIcon, CAT_COLORS, defaultColors } from './Icons';
 import { RAW } from '../config';
 
+function CopyButton({ text, label, copied, onCopy }) {
+  return (
+    <button onClick={() => onCopy(text, label)}
+      className="flex-shrink-0 text-surface-400 hover:text-brand-600 transition-colors p-1" title="Copy">
+      {copied === label ? <Icons.Check /> : <Icons.Copy />}
+    </button>
+  );
+}
+
 export default function SkillDetailModal({ skill, onClose, onToggle, selected }) {
   const [content, setContent] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState('preview');
+  const [copied, setCopied] = useState(null);
   const c = CAT_COLORS[skill.category] || defaultColors;
 
   useEffect(() => {
@@ -14,6 +25,26 @@ export default function SkillDetailModal({ skill, onClose, onToggle, selected })
       .catch(() => setLoading(false));
   }, [skill.id]);
 
+  const copyToClipboard = (text, label) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(label);
+      setTimeout(() => setCopied(null), 2000);
+    });
+  };
+
+  const downloadFile = () => {
+    if (!content) return;
+    const blob = new Blob([content], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `${skill.id}-SKILL.md`; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const curlCmd = `curl -sL "${RAW(`skills/${skill.id}/SKILL.md`)}" -o .claude/skills/${skill.id}/SKILL.md --create-dirs`;
+  const cliProject = `npx pando-skillo add ${skill.id}`;
+  const cliGlobal = `npx pando-skillo add ${skill.id} --global`;
+
   const renderMarkdown = (md) => {
     if (!md) return null;
     const body = md.replace(/^---[\s\S]*?---\n*/, '');
@@ -21,7 +52,6 @@ export default function SkillDetailModal({ skill, onClose, onToggle, selected })
     const html = [];
     let inCode = false;
     let codeBlock = [];
-
     for (const line of lines) {
       if (line.startsWith('```')) {
         if (inCode) {
@@ -32,7 +62,6 @@ export default function SkillDetailModal({ skill, onClose, onToggle, selected })
         continue;
       }
       if (inCode) { codeBlock.push(line); continue; }
-
       if (line.startsWith('### '))
         html.push(<h4 key={html.length} className="font-semibold text-surface-800 mt-4 mb-1 text-sm">{line.slice(4)}</h4>);
       else if (line.startsWith('## '))
@@ -73,21 +102,109 @@ export default function SkillDetailModal({ skill, onClose, onToggle, selected })
             <button onClick={onClose} className="text-surface-500 hover:text-surface-900 p-1"><Icons.X /></button>
           </div>
         </div>
-        <div className="p-5 border-b border-surface-100">
-          <p className="text-sm text-surface-600">{skill.description}</p>
-          <div className="flex flex-wrap gap-1.5 mt-3">
-            {skill.triggers.map(t => (
-              <span key={t} className="text-xs bg-surface-100 text-surface-600 px-2 py-0.5 rounded font-mono">{t}</span>
-            ))}
-          </div>
+
+        <div className="flex border-b border-surface-100 px-5">
+          {[['preview', 'Preview'], ['install', 'Install & Share']].map(([key, label]) => (
+            <button key={key} onClick={() => setTab(key)}
+              className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${tab === key ? 'border-brand-600 text-brand-700' : 'border-transparent text-surface-500 hover:text-surface-700'}`}>
+              {label}
+            </button>
+          ))}
         </div>
+
         <div className="overflow-y-auto flex-1 p-5">
-          {loading
-            ? <div className="flex items-center justify-center py-10 text-surface-400"><Icons.Loader /><span className="ml-2 text-sm">Loading skill content...</span></div>
-            : content
-              ? <div>{renderMarkdown(content)}</div>
-              : <p className="text-sm text-surface-500 text-center py-10">Could not load skill content.</p>
-          }
+          {tab === 'preview' && (
+            <>
+              <p className="text-sm text-surface-600 mb-3">{skill.description}</p>
+              <div className="flex flex-wrap gap-1.5 mb-4">
+                {skill.triggers.map(t => (
+                  <span key={t} className="text-xs bg-surface-100 text-surface-600 px-2 py-0.5 rounded font-mono">{t}</span>
+                ))}
+              </div>
+              {loading
+                ? <div className="flex items-center justify-center py-10 text-surface-400"><Icons.Loader /><span className="ml-2 text-sm">Loading skill content...</span></div>
+                : content
+                  ? <div>{renderMarkdown(content)}</div>
+                  : <p className="text-sm text-surface-500 text-center py-10">Could not load skill content.</p>
+              }
+            </>
+          )}
+
+          {tab === 'install' && (
+            <div className="space-y-5">
+              <div>
+                <h4 className="font-semibold text-surface-900 text-sm mb-2 flex items-center gap-2"><Icons.Download /> Download</h4>
+                <p className="text-xs text-surface-500 mb-2">Download the SKILL.md file, then place it in your project or upload to claude.ai.</p>
+                <button onClick={downloadFile} disabled={!content}
+                  className="inline-flex items-center gap-2 bg-surface-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-surface-800 disabled:opacity-40 transition-colors">
+                  <Icons.Download /> Download SKILL.md
+                </button>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-surface-900 text-sm mb-2 flex items-center gap-2"><Icons.Terminal /> CLI Install</h4>
+                <div className="space-y-2">
+                  <div>
+                    <p className="text-xs text-surface-500 mb-1">Project-level (this repo only):</p>
+                    <div className="flex items-center gap-2 bg-surface-50 border border-surface-200 rounded-lg px-3 py-2">
+                      <code className="text-xs font-mono text-surface-800 flex-1 overflow-x-auto">{cliProject}</code>
+                      <CopyButton text={cliProject} label="cli-project" copied={copied} onCopy={copyToClipboard} />
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-xs text-surface-500 mb-1">Global (all your projects):</p>
+                    <div className="flex items-center gap-2 bg-surface-50 border border-surface-200 rounded-lg px-3 py-2">
+                      <code className="text-xs font-mono text-surface-800 flex-1 overflow-x-auto">{cliGlobal}</code>
+                      <CopyButton text={cliGlobal} label="cli-global" copied={copied} onCopy={copyToClipboard} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-surface-900 text-sm mb-2 flex items-center gap-2"><Icons.Globe /> One-liner (curl)</h4>
+                <p className="text-xs text-surface-500 mb-1">No install needed - run from your project root:</p>
+                <div className="flex items-start gap-2 bg-surface-50 border border-surface-200 rounded-lg px-3 py-2">
+                  <code className="text-xs font-mono text-surface-800 flex-1 break-all">{curlCmd}</code>
+                  <CopyButton text={curlCmd} label="curl" copied={copied} onCopy={copyToClipboard} />
+                </div>
+              </div>
+
+              <div className="border-t border-surface-100 pt-5">
+                <h4 className="font-semibold text-surface-900 text-sm mb-3">Where Skills Can Live</h4>
+                <div className="space-y-3">
+                  <div className="flex gap-3 items-start">
+                    <div className="p-1.5 rounded-lg bg-blue-50 text-blue-500 flex-shrink-0 mt-0.5"><Icons.Package /></div>
+                    <div>
+                      <p className="text-sm font-medium text-surface-800">Project-level <code className="text-xs bg-surface-100 px-1 rounded">.claude/skills/</code></p>
+                      <p className="text-xs text-surface-500">Lives in the repo. Shared via git. Best for project-specific skills.</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3 items-start">
+                    <div className="p-1.5 rounded-lg bg-purple-50 text-purple-500 flex-shrink-0 mt-0.5"><Icons.Home /></div>
+                    <div>
+                      <p className="text-sm font-medium text-surface-800">User-level <code className="text-xs bg-surface-100 px-1 rounded">~/.claude/skills/</code></p>
+                      <p className="text-xs text-surface-500">On your machine. Available in all your Claude Code projects. Use <code className="bg-surface-100 px-1 rounded text-[10px]">--global</code> flag.</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3 items-start">
+                    <div className="p-1.5 rounded-lg bg-amber-50 text-amber-500 flex-shrink-0 mt-0.5"><Icons.Globe /></div>
+                    <div>
+                      <p className="text-sm font-medium text-surface-800">Claude.ai (Web Chat)</p>
+                      <p className="text-xs text-surface-500">Download the SKILL.md, then go to claude.ai &gt; Settings &gt; Skills and upload. Works in browser conversations.</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3 items-start">
+                    <div className="p-1.5 rounded-lg bg-green-50 text-green-500 flex-shrink-0 mt-0.5"><Icons.GitPR /></div>
+                    <div>
+                      <p className="text-sm font-medium text-surface-800">Team Deploy (via PR)</p>
+                      <p className="text-xs text-surface-500">Select skills in this store and create a PR to add them to any team repo.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -3,6 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
+const os = require('os');
 
 const REPO_OWNER = 'pandotic';
 const REPO_NAME = 'pando-skillo';
@@ -29,7 +30,6 @@ function fetch(url) {
 }
 
 async function loadManifest() {
-  // Try local manifest first, then remote
   const localPath = path.resolve(__dirname, '..', 'skills-manifest.json');
   if (fs.existsSync(localPath)) {
     return JSON.parse(fs.readFileSync(localPath, 'utf8'));
@@ -39,12 +39,15 @@ async function loadManifest() {
 }
 
 async function loadSkillContent(skillId) {
-  // Try local first, then remote
   const localPath = path.resolve(__dirname, '..', 'skills', skillId, 'SKILL.md');
   if (fs.existsSync(localPath)) {
     return fs.readFileSync(localPath, 'utf8');
   }
   return fetch(raw(`skills/${skillId}/SKILL.md`));
+}
+
+function getGlobalSkillsDir() {
+  return path.join(os.homedir(), '.claude', 'skills');
 }
 
 function printUsage() {
@@ -58,13 +61,25 @@ Usage:
   pando-skillo add --all              Install all skills
 
 Options:
+  --global       Install to ~/.claude/skills/ (available in all projects)
   --dir <path>   Target directory (default: current directory)
+  --force        Overwrite existing skills
   --help, -h     Show this help
+
+Install Scopes:
+  (default)      Project-level: .claude/skills/ in current directory
+  --global       User-level:    ~/.claude/skills/ (all your projects)
+  PR via web     Team-level:    Deploy to any repo via the Skills Store UI
 
 Examples:
   pando-skillo list
   pando-skillo add docx pdf xlsx
+  pando-skillo add docx --global
   pando-skillo add --all --dir ./my-project
+  pando-skillo add --all --global
+
+One-liner (no install needed):
+  curl -sL https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${BRANCH}/bin/cli.cjs | node - add docx pdf
 `);
 }
 
@@ -92,10 +107,12 @@ async function cmdInfo(skillId) {
   console.log(`Category:    ${skill.category}`);
   console.log(`Description: ${skill.description}`);
   console.log(`Triggers:    ${skill.triggers.join(', ')}`);
+  console.log(`\nInstall (project):  pando-skillo add ${skill.id}`);
+  console.log(`Install (global):   pando-skillo add ${skill.id} --global`);
   console.log();
 }
 
-async function cmdAdd(ids, targetDir) {
+async function cmdAdd(ids, targetDir, { global: isGlobal, force }) {
   const manifest = await loadManifest();
 
   let skillsToAdd;
@@ -118,31 +135,47 @@ async function cmdAdd(ids, targetDir) {
     process.exit(1);
   }
 
-  const skillsDir = path.join(targetDir, '.claude', 'skills');
+  const skillsDir = isGlobal ? getGlobalSkillsDir() : path.join(targetDir, '.claude', 'skills');
+  const scope = isGlobal ? 'global (~/.claude/skills)' : 'project (.claude/skills)';
+  console.log(`\nInstalling to ${scope}:\n`);
+
   let added = 0;
+  let updated = 0;
   let skipped = 0;
 
   for (const skill of skillsToAdd) {
     const destDir = path.join(skillsDir, skill.id);
     const destFile = path.join(destDir, 'SKILL.md');
 
-    if (fs.existsSync(destFile)) {
-      console.log(`  skip  ${skill.id} (already exists)`);
+    if (fs.existsSync(destFile) && !force) {
+      console.log(`  skip     ${skill.id} (already exists, use --force to overwrite)`);
       skipped++;
       continue;
     }
 
+    const existed = fs.existsSync(destFile);
     const content = await loadSkillContent(skill.id);
     fs.mkdirSync(destDir, { recursive: true });
     fs.writeFileSync(destFile, content);
     const ver = skill.version ? ` v${skill.version}` : '';
-    console.log(`  add   ${skill.id}${ver} → .claude/skills/${skill.id}/SKILL.md`);
-    added++;
+    const relPath = isGlobal ? `~/.claude/skills/${skill.id}/SKILL.md` : `.claude/skills/${skill.id}/SKILL.md`;
+
+    if (existed) {
+      console.log(`  update   ${skill.id}${ver} -> ${relPath}`);
+      updated++;
+    } else {
+      console.log(`  add      ${skill.id}${ver} -> ${relPath}`);
+      added++;
+    }
   }
 
-  console.log(`\nDone. ${added} added, ${skipped} skipped.`);
-  if (added > 0) {
-    console.log(`Skills installed to ${path.relative(process.cwd(), skillsDir) || skillsDir}`);
+  console.log(`\nDone. ${added} added, ${updated} updated, ${skipped} skipped.`);
+  if (added > 0 || updated > 0) {
+    if (isGlobal) {
+      console.log(`Skills installed globally — available in all your Claude Code projects.`);
+    } else {
+      console.log(`Skills installed to ${path.relative(process.cwd(), skillsDir) || skillsDir}`);
+    }
   }
 }
 
@@ -156,31 +189,42 @@ async function main() {
 
   const cmd = args[0];
 
-  // Parse --dir flag
+  // Parse flags
   let targetDir = process.cwd();
-  const dirIdx = args.indexOf('--dir');
+  const isGlobal = args.includes('--global');
+  const force = args.includes('--force');
+
+  // Remove known flags from args
+  const cleanArgs = args.filter(a => a !== '--global' && a !== '--force');
+
+  const dirIdx = cleanArgs.indexOf('--dir');
   if (dirIdx !== -1) {
-    targetDir = path.resolve(args[dirIdx + 1] || '.');
-    args.splice(dirIdx, 2);
+    targetDir = path.resolve(cleanArgs[dirIdx + 1] || '.');
+    cleanArgs.splice(dirIdx, 2);
+  }
+
+  if (isGlobal && dirIdx !== -1) {
+    console.error('Cannot use --global and --dir together.');
+    process.exit(1);
   }
 
   try {
-    switch (cmd) {
+    switch (cleanArgs[0]) {
       case 'list':
       case 'ls':
         await cmdList();
         break;
       case 'info':
-        if (!args[1]) { console.error('Usage: pando-skillo info <skill-id>'); process.exit(1); }
-        await cmdInfo(args[1]);
+        if (!cleanArgs[1]) { console.error('Usage: pando-skillo info <skill-id>'); process.exit(1); }
+        await cmdInfo(cleanArgs[1]);
         break;
       case 'add':
       case 'install':
-        if (args.length < 2) { console.error('Usage: pando-skillo add <id> [<id> ...]'); process.exit(1); }
-        await cmdAdd(args.slice(1), targetDir);
+        if (cleanArgs.length < 2) { console.error('Usage: pando-skillo add <id> [<id> ...]'); process.exit(1); }
+        await cmdAdd(cleanArgs.slice(1), targetDir, { global: isGlobal, force });
         break;
       default:
-        console.error(`Unknown command: "${cmd}". Run "pando-skillo --help" for usage.`);
+        console.error(`Unknown command: "${cleanArgs[0]}". Run "pando-skillo --help" for usage.`);
         process.exit(1);
     }
   } catch (err) {

@@ -1,107 +1,225 @@
 # Skills Store
 
-One repo holds everything: the skills themselves and the web app that lets your team browse and deploy them to any project via GitHub pull request.
+A skills library and marketplace for Claude. Browse skills in a web UI, install them via CLI, or deploy to any repo via GitHub PR.
 
 ```
-skills-store/
-├── skills/                     ← your skills live here (the source of truth)
+pando-skillo/
+├── skills/                     <- skill definitions (source of truth)
 │   ├── docx/SKILL.md
 │   ├── pdf/SKILL.md
-│   └── ...
-├── skills-manifest.json        ← registry of skills with metadata
-├── public/
-│   └── index.html              ← the web app (fetches skills directly from this repo)
-├── netlify/
-│   └── functions/
-│       └── github-auth.js      ← OAuth token exchange (keeps secret server-side)
-├── netlify.toml
-└── package.json
+│   ├── xlsx/SKILL.md
+│   ├── pptx/SKILL.md
+│   ├── mindpal/SKILL.md
+│   ├── skill-creator/SKILL.md
+│   ├── schedule/SKILL.md
+│   └── _template/SKILL.md     <- scaffold for new skills
+├── skills-manifest.json        <- registry with metadata
+├── bin/cli.cjs                 <- CLI tool
+├── src/                        <- Vite React app (componentized)
+├── public/index.html           <- CDN fallback (standalone SPA)
+├── netlify/functions/          <- OAuth token exchange
+└── scripts/                    <- validation + sync utilities
 ```
-
-The web app fetches `skills-manifest.json` and individual `SKILL.md` files directly from this repo via `raw.githubusercontent.com`. **Add a skill to the repo → it appears in the store immediately.**
 
 ---
 
-## Setup
+## Quick Start: Install a Skill
 
-### 1. Create a GitHub OAuth App
-
-Go to [github.com/settings/developers](https://github.com/settings/developers) → **New OAuth App**:
-
-| Field | Value |
-|---|---|
-| Homepage URL | Your Netlify URL, e.g. `https://skills-store.netlify.app` |
-| Authorization callback URL | Same as Homepage URL |
-
-Copy the **Client ID** and generate a **Client Secret**.
-
-### 2. Configure the app
-
-Edit `public/index.html` and find the `SKILLS_CONFIG` block near the top:
-
-```js
-window.SKILLS_CONFIG = {
-  repoOwner: 'pandotic',
-  repoName:  'pando-skills',
-  branch:    'main',
-};
-```
-
-Also update the `loginWithGitHub` function in the same file:
-
-```js
-const clientId = 'your_actual_client_id_here';
-```
-
-### 3. Deploy to Netlify
+### Option 1: CLI (recommended)
 
 ```bash
-npm install -g netlify-cli
-netlify link                  # link to your Netlify site
-netlify env:set GITHUB_CLIENT_ID     "your_client_id"
-netlify env:set GITHUB_CLIENT_SECRET "your_client_secret"
-netlify deploy --prod
+# Install to current project
+npx pando-skillo add docx pdf xlsx
+
+# Install globally (all your projects)
+npx pando-skillo add docx --global
+
+# Install everything
+npx pando-skillo add --all
+
+# List available skills
+npx pando-skillo list
 ```
 
-Or connect the repo in the Netlify dashboard — it will auto-deploy on every push.
+### Option 2: One-liner (no install)
+
+```bash
+# Download a single skill directly
+curl -sL "https://raw.githubusercontent.com/pandotic/pando-skillo/main/skills/docx/SKILL.md" \
+  -o .claude/skills/docx/SKILL.md --create-dirs
+```
+
+### Option 3: Web UI + PR
+
+Visit the Skills Store web app, select skills, choose a target repo, and create a pull request.
+
+### Option 4: Manual download
+
+Download SKILL.md from the web UI detail modal and place it wherever you need it.
+
+---
+
+## Understanding Skill Types & Scopes
+
+Skills are markdown files (SKILL.md) with YAML frontmatter that teach Claude new capabilities. They work across different platforms and scopes:
+
+### Where Skills Can Live
+
+| Scope | Location | Who Gets It | Best For |
+|-------|----------|-------------|----------|
+| **Project** | `.claude/skills/<name>/SKILL.md` | Anyone who clones the repo | Team skills, project-specific workflows |
+| **User (global)** | `~/.claude/skills/<name>/SKILL.md` | You, in all your projects | Personal productivity skills |
+| **Enterprise** | Admin-managed settings | Everyone in your org | Org-wide standards and processes |
+| **Claude.ai** | Settings > Skills (upload) | You, in web chat | Browser-based conversations |
+
+### How Each Platform Works
+
+**Claude Code** (CLI, Desktop, claude.ai/code)
+- Skills are auto-discovered from `.claude/skills/` in your project and `~/.claude/skills/` globally
+- Claude reads the `description` field to decide when to activate a skill
+- Skills can be invoked explicitly with `/skill-name` or triggered automatically
+- Supports nested discovery in monorepos (each package can have its own skills)
+
+**Claude.ai** (Web Chat at claude.ai)
+- Go to Settings > Skills and upload a SKILL.md file
+- Skills work within browser-based conversations
+- Each user uploads individually (not shared via git)
+- Download from this Skills Store using the "Download SKILL.md" button
+
+**Both platforms** follow the [Agent Skills](https://agentskills.io) open standard for skill format.
+
+### Skill Format
+
+Every skill is a single markdown file:
+
+```yaml
+---
+name: my-skill
+version: "1.0.0"
+description: "When to trigger and what the skill does"
+---
+
+# My Skill
+
+Instructions for Claude...
+```
+
+The `description` field is critical — it's what Claude reads to decide whether to use the skill. Be specific about triggers: mention file extensions, keywords, and user intents.
+
+---
+
+## Ways to Share Skills
+
+### 1. Git (team sharing)
+Add skills to `.claude/skills/` in any repo. Everyone who clones gets them automatically.
+
+```bash
+# From your project root
+npx pando-skillo add docx pdf
+git add .claude/skills/
+git commit -m "Add document skills"
+git push
+```
+
+### 2. PR Deploy (cross-repo)
+Use the Skills Store web UI to create a PR that adds skills to any repo you have push access to. Great for deploying skills to multiple team repos.
+
+### 3. Global Install (personal)
+Install skills to `~/.claude/skills/` so they're available in every project without polluting repos.
+
+```bash
+npx pando-skillo add --all --global
+```
+
+### 4. Direct Download (claude.ai)
+Click any skill in the web UI, go to "Install & Share" tab, and download the SKILL.md file. Upload it to claude.ai > Settings > Skills.
+
+### 5. Curl / Script (CI/automation)
+Use the raw GitHub URL to fetch skills programmatically:
+
+```bash
+# Single skill
+curl -sL "https://raw.githubusercontent.com/pandotic/pando-skillo/main/skills/docx/SKILL.md" \
+  -o .claude/skills/docx/SKILL.md --create-dirs
+
+# All skills via CLI
+npx pando-skillo add --all --dir /path/to/project
+```
+
+### 6. Fork & Customize
+Fork this repo, add your own skills, and point the web UI at your fork. Your team gets a private skills marketplace.
 
 ---
 
 ## Adding a New Skill
 
-1. Create `skills/your-skill-name/SKILL.md` with YAML frontmatter:
-   ```yaml
-   ---
-   name: your-skill-name
-   description: "What this skill does"
-   ---
-   # Your Skill
-   ...
+1. Copy the template:
+   ```bash
+   cp -r skills/_template skills/my-skill
    ```
-2. Add an entry to `skills-manifest.json`:
+
+2. Edit `skills/my-skill/SKILL.md` with your skill's content
+
+3. Add an entry to `skills-manifest.json`:
    ```json
    {
-     "id": "your-skill-name",
-     "name": "Human Readable Name",
+     "id": "my-skill",
+     "name": "My Skill",
      "icon": "Wrench",
      "category": "Developer Tools",
-     "description": "Short description shown on the card",
+     "description": "Short description for the card",
      "triggers": ["keyword1", "keyword2"],
-     "path": "skills/your-skill-name"
+     "version": "1.0.0",
+     "path": "skills/my-skill"
    }
    ```
-3. Commit and push. The store updates automatically.
+
+4. Validate and sync:
+   ```bash
+   npm run validate   # Check manifest matches skill directories
+   npm run sync       # Copy to public/ for local dev
+   ```
+
+5. Commit and push. The store updates automatically.
 
 **Available icons:** `FileText`, `FileCheck`, `Presentation`, `Table`, `Bot`, `Wrench`, `Clock`, `Package`
 
 **Available categories:** `Documents`, `AI & Automation`, `Developer Tools`
-(To add a new category, also add it to the `CAT_COLORS` object in `index.html`)
 
 ---
 
-## How It Works
+## Development
 
-1. A teammate opens the Skills Store, signs in with GitHub, and browses the available skills
-2. They select the ones they want and choose a target repository
-3. The app fetches each `SKILL.md` directly from this repo and creates a PR on the target repo, adding the skills to `.claude/skills/`
-4. The team reviews and merges — skills are live in that project
+```bash
+npm install            # Install dependencies
+npm run dev            # Vite dev server (componentized app)
+npm run dev:netlify    # Netlify dev server (with serverless functions)
+npm run build          # Sync + Vite production build
+npm run validate       # Check manifest <-> skill directory consistency
+npm run sync           # Copy skills + manifest to public/
+```
+
+### Setup for Deployment
+
+1. **Create a GitHub OAuth App** at [github.com/settings/developers](https://github.com/settings/developers):
+   - Homepage URL: Your Netlify URL
+   - Callback URL: Same as Homepage URL
+
+2. **Deploy to Netlify:**
+   ```bash
+   netlify env:set GITHUB_CLIENT_ID     "your_client_id"
+   netlify env:set GITHUB_CLIENT_SECRET "your_client_secret"
+   netlify deploy --prod
+   ```
+
+---
+
+## Architecture
+
+- **Frontend (Vite):** `src/` — React 18 + Tailwind, componentized, builds to `dist/`
+- **Frontend (CDN fallback):** `public/index.html` — standalone SPA, no build step
+- **Backend:** `netlify/functions/github-auth.js` — OAuth token exchange only
+- **Skills:** `skills/<id>/SKILL.md` — markdown with YAML frontmatter
+- **Registry:** `skills-manifest.json` — single source of truth
+- **CLI:** `bin/cli.cjs` — Node.js CLI for terminal installation
+- **Deployment:** Netlify (static + serverless functions)
