@@ -10,6 +10,7 @@ An internal skills marketplace for Claude Code. Team members browse skills in a 
 - **Frontend (CDN fallback)**: `public/index.html` — standalone SPA with CDN React, no build step
 - **Backend**: Netlify serverless function (`netlify/functions/github-auth.js`) — GitHub OAuth token exchange only
 - **Skills**: Markdown files in `skills/<id>/SKILL.md` with YAML frontmatter
+- **Components**: Reusable React/JSX files in `components/<id>/` — installed alongside companion skills
 - **Registry**: `skills-manifest.json` at repo root — single source of truth for skill metadata
 - **CLI**: `bin/cli.cjs` — Node.js CLI for terminal-based skill installation
 - **Deployment**: Netlify static site + functions
@@ -46,7 +47,17 @@ Markdown instructions for Claude...
 
 Available icons: `FileText`, `FileCheck`, `Presentation`, `Table`, `Bot`, `Wrench`, `Clock`, `Package`
 
-Available categories: `Documents`, `AI & Automation`, `Developer Tools`
+Available categories: `Documents`, `AI & Automation`, `Developer Tools`, `UI Components`
+
+### Skills with Components
+A skill can include companion component files via the `"components"` field in the manifest:
+```json
+{
+  "id": "ui-kit",
+  "components": ["modal", "card", "tabs", "badge"]
+}
+```
+When installed via CLI, both the SKILL.md (to `.claude/skills/`) and component files (to `components/`) are copied. The skill teaches Claude how to use the components; the components are the actual code.
 
 ### Adding a New Skill
 1. Copy `skills/_template/SKILL.md` to `skills/<id>/SKILL.md`

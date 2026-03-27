@@ -78,6 +78,7 @@ export const CAT_COLORS = {
   'Documents': { bg: 'bg-blue-50', text: 'text-blue-700', icon: 'text-blue-500' },
   'AI & Automation': { bg: 'bg-purple-50', text: 'text-purple-700', icon: 'text-purple-500' },
   'Developer Tools': { bg: 'bg-amber-50', text: 'text-amber-700', icon: 'text-amber-500' },
+  'UI Components': { bg: 'bg-green-50', text: 'text-green-700', icon: 'text-green-500' },
 };
 
 export const defaultColors = { bg: 'bg-surface-100', text: 'text-surface-700', icon: 'text-surface-500' };

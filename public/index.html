@@ -82,6 +82,7 @@
       Globe:        () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
       Home:         () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
       Copy:         () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>,
+      Component:    () => <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>,
     };
     const getIcon = (name) => { const I = Icons[name] || Icons.Package; return <I />; };
 
@@ -89,6 +90,7 @@
       'Documents':       { bg: 'bg-blue-50',   text: 'text-blue-700',   icon: 'text-blue-500'   },
       'AI & Automation': { bg: 'bg-purple-50', text: 'text-purple-700', icon: 'text-purple-500' },
       'Developer Tools': { bg: 'bg-amber-50',  text: 'text-amber-700',  icon: 'text-amber-500'  },
+      'UI Components':   { bg: 'bg-green-50',  text: 'text-green-700',  icon: 'text-green-500'  },
     };
     const defaultColors = { bg: 'bg-surface-100', text: 'text-surface-700', icon: 'text-surface-500' };
 
