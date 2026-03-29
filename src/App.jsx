@@ -5,6 +5,7 @@ import SkillCard from './components/SkillCard';
 import SkillDetailModal from './components/SkillDetailModal';
 import RepoPickerModal from './components/RepoPickerModal';
 import SuccessModal from './components/SuccessModal';
+import GuideSections from './components/GuideSections';
 
 function ConfigWarning() {
   return (
@@ -192,9 +193,12 @@ export default function App() {
 
         {loadingSkills
           ? <div className="flex items-center justify-center py-20 text-surface-400 gap-2"><Icons.Loader /><span className="text-sm">Loading from GitHub...</span></div>
-          : <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filtered.map(s => <SkillCard key={s.id} skill={s} selected={selected.has(s.id)} onToggle={toggle} onDetail={setDetailSkill} />)}
-            </div>
+          : <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filtered.map(s => <SkillCard key={s.id} skill={s} selected={selected.has(s.id)} onToggle={toggle} onDetail={setDetailSkill} />)}
+              </div>
+              <GuideSections />
+            </>
         }
       </main>
 

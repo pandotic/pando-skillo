@@ -406,6 +406,179 @@
       );
     }
 
+    // ─── Guide Sections ──────────────────────────────────────────────────────
+    function GuideSection({ icon, title, subtitle, children, defaultOpen }) {
+      const [open, setOpen] = useState(defaultOpen || false);
+      return (
+        React.createElement('div', { className: 'border border-surface-200 rounded-xl bg-white overflow-hidden' },
+          React.createElement('button', { onClick: () => setOpen(!open), className: 'w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-surface-50 transition-colors' },
+            React.createElement('div', { className: 'p-2 rounded-lg bg-brand-50 text-brand-600 flex-shrink-0' }, icon),
+            React.createElement('div', { className: 'flex-1 min-w-0' },
+              React.createElement('h3', { className: 'font-semibold text-surface-900 text-base' }, title),
+              React.createElement('p', { className: 'text-sm text-surface-500 mt-0.5' }, subtitle)
+            ),
+            React.createElement('svg', { xmlns: 'http://www.w3.org/2000/svg', width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round', className: `text-surface-400 transition-transform flex-shrink-0 ${open ? 'rotate-180' : ''}` },
+              React.createElement('polyline', { points: '6 9 12 15 18 9' })
+            )
+          ),
+          open && React.createElement('div', { className: 'px-5 pb-5 border-t border-surface-100' }, children)
+        )
+      );
+    }
+
+    function GuideSections() {
+      return (
+        React.createElement('div', { className: 'mt-10 space-y-4' },
+          React.createElement('div', { className: 'flex items-center gap-2 mb-2' },
+            React.createElement('div', { className: 'h-px flex-1 bg-surface-200' }),
+            React.createElement('span', { className: 'text-xs font-medium text-surface-400 uppercase tracking-wider' }, 'Getting Started'),
+            React.createElement('div', { className: 'h-px flex-1 bg-surface-200' })
+          ),
+
+          // How to Use
+          React.createElement(GuideSection, { icon: React.createElement(Icons.Download), title: 'How to Use Skills & Components', subtitle: 'Grab what you need for your project in seconds', defaultOpen: true },
+            React.createElement('div', { className: 'pt-4 space-y-5' },
+              React.createElement('p', { className: 'text-sm text-surface-600 leading-relaxed' },
+                'Skills teach Claude ', React.createElement('em', null, 'how'), ' to do things \u2014 generate docs, handle file formats, follow conventions. Components give Claude ', React.createElement('em', null, 'actual code'), ' to use \u2014 pre-built UI pieces that keep everything consistent. Pick what you need, install it, and Claude handles the rest.'
+              ),
+              React.createElement('div', { className: 'grid grid-cols-1 sm:grid-cols-2 gap-4' },
+                React.createElement('div', { className: 'bg-surface-50 rounded-lg p-4 space-y-3' },
+                  React.createElement('div', { className: 'flex items-center gap-2' },
+                    React.createElement('div', { className: 'p-1.5 rounded bg-blue-50 text-blue-500' }, React.createElement(Icons.Terminal)),
+                    React.createElement('h4', { className: 'text-sm font-semibold text-surface-800' }, 'Fastest: CLI')
+                  ),
+                  React.createElement('div', { className: 'space-y-2' },
+                    React.createElement('div', null,
+                      React.createElement('p', { className: 'text-xs text-surface-500 mb-1' }, 'Add to current project:'),
+                      React.createElement('code', { className: 'text-xs font-mono bg-surface-100 text-surface-800 px-2 py-1 rounded block' }, 'npx pando-skillo add docx pdf')
+                    ),
+                    React.createElement('div', null,
+                      React.createElement('p', { className: 'text-xs text-surface-500 mb-1' }, 'Add everywhere (all projects):'),
+                      React.createElement('code', { className: 'text-xs font-mono bg-surface-100 text-surface-800 px-2 py-1 rounded block' }, 'npx pando-skillo add docx --global')
+                    ),
+                    React.createElement('div', null,
+                      React.createElement('p', { className: 'text-xs text-surface-500 mb-1' }, 'Install everything at once:'),
+                      React.createElement('code', { className: 'text-xs font-mono bg-surface-100 text-surface-800 px-2 py-1 rounded block' }, 'npx pando-skillo add --all')
+                    )
+                  )
+                ),
+                React.createElement('div', { className: 'bg-surface-50 rounded-lg p-4 space-y-3' },
+                  React.createElement('div', { className: 'flex items-center gap-2' },
+                    React.createElement('div', { className: 'p-1.5 rounded bg-purple-50 text-purple-500' }, React.createElement(Icons.Globe)),
+                    React.createElement('h4', { className: 'text-sm font-semibold text-surface-800' }, 'Other Ways')
+                  ),
+                  React.createElement('div', { className: 'space-y-2.5' },
+                    React.createElement('div', { className: 'flex gap-2 items-start' },
+                      React.createElement('span', { className: 'text-xs text-brand-600 font-bold mt-0.5' }, 'PR'),
+                      React.createElement('p', { className: 'text-xs text-surface-600' }, 'Select skills above, sign in with GitHub, and deploy to any repo via pull request.')
+                    ),
+                    React.createElement('div', { className: 'flex gap-2 items-start' },
+                      React.createElement('span', { className: 'text-xs text-brand-600 font-bold mt-0.5' }, 'DL'),
+                      React.createElement('p', { className: 'text-xs text-surface-600' }, 'Click any skill card, download SKILL.md, and drop it into .claude/skills/ or upload to claude.ai.')
+                    ),
+                    React.createElement('div', { className: 'flex gap-2 items-start' },
+                      React.createElement('span', { className: 'text-xs text-brand-600 font-bold mt-0.5' }, 'curl'),
+                      React.createElement('p', { className: 'text-xs text-surface-600' }, 'One-liner from any terminal \u2014 no install needed. Click a skill card for the copy-paste command.')
+                    )
+                  )
+                )
+              ),
+              React.createElement('div', { className: 'bg-brand-50 rounded-lg p-4' },
+                React.createElement('p', { className: 'text-sm font-medium text-brand-800 mb-1' }, 'Skills + Components work together'),
+                React.createElement('p', { className: 'text-xs text-brand-700 leading-relaxed' },
+                  'When you install a skill that has companion components (like the UI Kit), both get installed automatically. The skill teaches Claude your design conventions; the components give it ready-to-use code. Ask Claude to "build a settings page" and it\'ll assemble one from your component library \u2014 consistent every time.'
+                )
+              )
+            )
+          ),
+
+          // How to Share
+          React.createElement(GuideSection, { icon: React.createElement(Icons.Package), title: 'How to Share Skills & Components', subtitle: 'Add your own to the library so the whole team benefits' },
+            React.createElement('div', { className: 'pt-4 space-y-5' },
+              React.createElement('p', { className: 'text-sm text-surface-600 leading-relaxed' },
+                'Built something useful with Claude? Turn it into a skill so everyone can reuse it. Skills are just Markdown files with a bit of YAML frontmatter \u2014 nothing to compile, no dependencies. Components are the same idea for code: drop in a React file and it\'s instantly available to the team.'
+              ),
+              React.createElement('div', null,
+                React.createElement('h4', { className: 'text-sm font-semibold text-surface-800 mb-3' }, 'Add a Skill'),
+                React.createElement('div', { className: 'space-y-3' },
+                  ...[
+                    ['1', 'Create the skill file', 'Copy skills/_template/SKILL.md to skills/your-skill/SKILL.md. Write what Claude should do \u2014 the more specific, the better.'],
+                    ['2', 'Register it in the manifest', 'Add an entry to skills-manifest.json with name, description, category, icon, and trigger keywords.'],
+                    ['3', 'Validate and push', 'Run npm run validate to check everything lines up, then open a PR. Once merged, it\u2019s live here instantly.']
+                  ].map(([num, title, desc]) =>
+                    React.createElement('div', { key: num, className: 'flex gap-3' },
+                      React.createElement('div', { className: 'flex-shrink-0 w-6 h-6 rounded-full bg-brand-100 text-brand-700 text-xs font-bold flex items-center justify-center mt-0.5' }, num),
+                      React.createElement('div', null,
+                        React.createElement('p', { className: 'text-sm font-medium text-surface-800' }, title),
+                        React.createElement('p', { className: 'text-sm text-surface-600 mt-0.5 leading-relaxed' }, desc)
+                      )
+                    )
+                  )
+                )
+              ),
+              React.createElement('div', null,
+                React.createElement('h4', { className: 'text-sm font-semibold text-surface-800 mb-3' }, 'Add a Component'),
+                React.createElement('div', { className: 'space-y-3' },
+                  ...[
+                    ['1', 'Create the component directory', 'Add your file(s) to components/your-component/ \u2014 React + Tailwind, self-contained, no external deps.'],
+                    ['2', 'Link it to a skill', 'Add the component ID to the "components" array on the parent skill in the manifest.'],
+                    ['3', 'Document usage in the skill', 'Update the skill\u2019s SKILL.md with props and example usage so Claude knows how to wire it in.']
+                  ].map(([num, title, desc]) =>
+                    React.createElement('div', { key: num, className: 'flex gap-3' },
+                      React.createElement('div', { className: 'flex-shrink-0 w-6 h-6 rounded-full bg-brand-100 text-brand-700 text-xs font-bold flex items-center justify-center mt-0.5' }, num),
+                      React.createElement('div', null,
+                        React.createElement('p', { className: 'text-sm font-medium text-surface-800' }, title),
+                        React.createElement('p', { className: 'text-sm text-surface-600 mt-0.5 leading-relaxed' }, desc)
+                      )
+                    )
+                  )
+                )
+              ),
+              React.createElement('div', { className: 'bg-surface-50 rounded-lg p-4' },
+                React.createElement('p', { className: 'text-sm font-medium text-surface-800 mb-2' }, 'What makes a good skill?'),
+                React.createElement('ul', { className: 'space-y-1.5' },
+                  ...['Solves a specific, repeatable problem (not a vague "be helpful" prompt)',
+                    'Self-contained \u2014 works without needing other files or context',
+                    'Includes concrete examples of what the output should look like',
+                    'Has clear trigger keywords so Claude knows when to activate it'
+                  ].map((text, i) =>
+                    React.createElement('li', { key: i, className: 'text-xs text-surface-600 flex gap-2' },
+                      React.createElement('span', { className: 'text-green-500 flex-shrink-0' }, '\u2713'), text
+                    )
+                  )
+                )
+              )
+            )
+          ),
+
+          // Where This Is Going
+          React.createElement(GuideSection, { icon: React.createElement(Icons.Globe), title: 'Where This Is Going', subtitle: 'Internal tool today, open marketplace tomorrow?' },
+            React.createElement('div', { className: 'pt-4 space-y-4' },
+              React.createElement('div', { className: 'grid grid-cols-1 sm:grid-cols-3 gap-3' },
+                ...[
+                  ['green', 'Now', 'Internal Library', 'A shared place for the team to browse, install, and contribute skills and components. Everything lives in one repo and deploys to a single Netlify site.'],
+                  ['amber', 'Next', 'Multi-Team Sharing', 'Multiple teams publish skills to their own repos. The store aggregates from multiple manifests \u2014 a federated skill network across the org.'],
+                  ['brand', 'Later', 'Open Marketplace', 'A public registry where anyone can publish and discover skills \u2014 like npm for AI workflows. Versioning, ratings, usage analytics, and one-click install.']
+                ].map(([color, phase, title, desc]) =>
+                  React.createElement('div', { key: phase, className: 'border border-surface-200 rounded-lg p-3.5' },
+                    React.createElement('div', { className: 'flex items-center gap-2 mb-2' },
+                      React.createElement('div', { className: `w-2 h-2 rounded-full bg-${color}-400` }),
+                      React.createElement('p', { className: 'text-xs font-semibold text-surface-800 uppercase tracking-wide' }, phase)
+                    ),
+                    React.createElement('p', { className: 'text-sm font-medium text-surface-800' }, title),
+                    React.createElement('p', { className: 'text-xs text-surface-500 mt-1 leading-relaxed' }, desc)
+                  )
+                )
+              ),
+              React.createElement('p', { className: 'text-xs text-surface-500 leading-relaxed' },
+                'The format is already compatible with the emerging ', React.createElement('strong', null, 'Agent Skills'), ' open standard. As the ecosystem matures, skills built here will work across platforms \u2014 Claude Code, claude.ai, and beyond. Building a library now means your team is already ahead.'
+              )
+            )
+          )
+        )
+      );
+    }
+
     // ─── Config Warning ───────────────────────────────────────────────────────
     function ConfigWarning() {
       return (
@@ -607,9 +780,12 @@
             {/* Grid */}
             {loadingSkills
               ? <div className="flex items-center justify-center py-20 text-surface-400 gap-2"><Icons.Loader /><span className="text-sm">Loading from GitHub…</span></div>
-              : <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {filtered.map(s => <SkillCard key={s.id} skill={s} selected={selected.has(s.id)} onToggle={toggle} onDetail={setDetailSkill} />)}
-                </div>
+              : <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {filtered.map(s => <SkillCard key={s.id} skill={s} selected={selected.has(s.id)} onToggle={toggle} onDetail={setDetailSkill} />)}
+                  </div>
+                  <GuideSections />
+                </>
             }
           </main>
 
