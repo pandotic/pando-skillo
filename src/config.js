@@ -8,3 +8,4 @@ export const RAW = (path) =>
   `https://raw.githubusercontent.com/${CFG.repoOwner}/${CFG.repoName}/${CFG.branch}/${path}`;
 
 export const MANIFEST_URL = RAW('skills-manifest.json');
+export const KB_MANIFEST_URL = RAW('knowledgebases-manifest.json');

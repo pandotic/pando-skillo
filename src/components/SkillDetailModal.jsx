@@ -11,19 +11,23 @@ function CopyButton({ text, label, copied, onCopy }) {
   );
 }
 
-export default function SkillDetailModal({ skill, onClose, onToggle, selected }) {
+export default function SkillDetailModal({ skill, contentType, onClose, onToggle, selected }) {
   const [content, setContent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('preview');
   const [copied, setCopied] = useState(null);
   const c = CAT_COLORS[skill.category] || defaultColors;
 
+  const isKB = contentType === 'knowledgebases';
+  const contentPath = isKB ? `knowledgebases/${skill.id}/KB.md` : `skills/${skill.id}/SKILL.md`;
+  const fileName = isKB ? 'KB.md' : 'SKILL.md';
+
   useEffect(() => {
-    fetch(RAW(`skills/${skill.id}/SKILL.md`))
+    fetch(RAW(contentPath))
       .then(r => r.ok ? r.text() : null)
       .then(text => { setContent(text); setLoading(false); })
       .catch(() => setLoading(false));
-  }, [skill.id]);
+  }, [skill.id, contentPath]);
 
   const copyToClipboard = (text, label) => {
     navigator.clipboard.writeText(text).then(() => {
@@ -37,13 +41,15 @@ export default function SkillDetailModal({ skill, onClose, onToggle, selected })
     const blob = new Blob([content], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = `${skill.id}-SKILL.md`; a.click();
+    a.href = url; a.download = `${skill.id}-${fileName}`; a.click();
     URL.revokeObjectURL(url);
   };
 
-  const curlCmd = `curl -sL "${RAW(`skills/${skill.id}/SKILL.md`)}" -o .claude/skills/${skill.id}/SKILL.md --create-dirs`;
-  const cliProject = `npx pando-skillo add ${skill.id}`;
-  const cliGlobal = `npx pando-skillo add ${skill.id} --global`;
+  const curlCmd = isKB
+    ? `curl -sL "${RAW(contentPath)}" -o .claude/skills/${skill.id}/SKILL.md --create-dirs`
+    : `curl -sL "${RAW(contentPath)}" -o .claude/skills/${skill.id}/SKILL.md --create-dirs`;
+  const cliProject = isKB ? `npx pando-skillo kb add ${skill.id}` : `npx pando-skillo add ${skill.id}`;
+  const cliGlobal = isKB ? `npx pando-skillo kb add ${skill.id} --global` : `npx pando-skillo add ${skill.id} --global`;
 
   const renderMarkdown = (md) => {
     if (!md) return null;
@@ -80,6 +86,10 @@ export default function SkillDetailModal({ skill, onClose, onToggle, selected })
     return html;
   };
 
+  const tabs = isKB
+    ? [['preview', 'Preview'], ['install', 'Install & Share']]
+    : [['preview', 'Preview'], ['install', 'Install & Share'], ['create', 'Create Your Own']];
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col fade-in" onClick={e => e.stopPropagation()}>
@@ -93,6 +103,9 @@ export default function SkillDetailModal({ skill, onClose, onToggle, selected })
               </div>
               <div className="flex items-center gap-2">
                 <span className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full ${c.bg} ${c.text}`}>{skill.category}</span>
+                {skill.domain && (
+                  <span className="text-xs text-surface-500 font-medium">{skill.domain}</span>
+                )}
                 {skill.author && (
                   <span className="flex items-center gap-1 text-xs text-surface-400">
                     <img src={`https://github.com/${skill.author}.png?size=32`} alt="" className="w-3.5 h-3.5 rounded-full" />
@@ -112,7 +125,7 @@ export default function SkillDetailModal({ skill, onClose, onToggle, selected })
         </div>
 
         <div className="flex border-b border-surface-100 px-5">
-          {[['preview', 'Preview'], ['install', 'Install & Share'], ['create', 'Create Your Own']].map(([key, label]) => (
+          {tabs.map(([key, label]) => (
             <button key={key} onClick={() => setTab(key)}
               className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${tab === key ? 'border-brand-600 text-brand-700' : 'border-transparent text-surface-500 hover:text-surface-700'}`}>
               {label}
@@ -125,32 +138,48 @@ export default function SkillDetailModal({ skill, onClose, onToggle, selected })
             <>
               <p className="text-sm text-surface-600 mb-3">{skill.description}</p>
               <div className="flex flex-wrap gap-1.5 mb-4">
-                {skill.triggers.map(t => (
+                {(skill.triggers || []).map(t => (
                   <span key={t} className="text-xs bg-surface-100 text-surface-600 px-2 py-0.5 rounded font-mono">{t}</span>
                 ))}
               </div>
+              {isKB && (
+                <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 mb-4 flex items-start gap-2">
+                  <span className="text-emerald-500 flex-shrink-0 mt-0.5"><Icons.Shield /></span>
+                  <p className="text-xs text-emerald-700">Universal guardrails are automatically included when this knowledgebase is installed, protecting against hallucinations, prompt injection, and out-of-domain answers.</p>
+                </div>
+              )}
               {loading
-                ? <div className="flex items-center justify-center py-10 text-surface-400"><Icons.Loader /><span className="ml-2 text-sm">Loading skill content...</span></div>
+                ? <div className="flex items-center justify-center py-10 text-surface-400"><Icons.Loader /><span className="ml-2 text-sm">Loading {isKB ? 'knowledgebase' : 'skill'} content...</span></div>
                 : content
                   ? <div>{renderMarkdown(content)}</div>
-                  : <p className="text-sm text-surface-500 text-center py-10">Could not load skill content.</p>
+                  : <p className="text-sm text-surface-500 text-center py-10">Could not load {isKB ? 'knowledgebase' : 'skill'} content.</p>
               }
             </>
           )}
 
           {tab === 'install' && (
             <div className="space-y-5">
+              {isKB && (
+                <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 flex items-start gap-2">
+                  <span className="text-emerald-500 flex-shrink-0 mt-0.5"><Icons.Shield /></span>
+                  <div>
+                    <p className="text-xs font-medium text-emerald-800">Guardrails included</p>
+                    <p className="text-xs text-emerald-700 mt-0.5">CLI and PR installs automatically prepend universal guardrails. The curl one-liner downloads the raw KB without guardrails.</p>
+                  </div>
+                </div>
+              )}
+
               <div>
                 <h4 className="font-semibold text-surface-900 text-sm mb-2 flex items-center gap-2"><Icons.Download /> Download</h4>
-                <p className="text-xs text-surface-500 mb-2">Download the SKILL.md file, then place it in your project or upload to claude.ai.</p>
+                <p className="text-xs text-surface-500 mb-2">Download the {fileName} file, then place it in your project or upload to claude.ai.</p>
                 <button onClick={downloadFile} disabled={!content}
                   className="inline-flex items-center gap-2 bg-surface-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-surface-800 disabled:opacity-40 transition-colors">
-                  <Icons.Download /> Download SKILL.md
+                  <Icons.Download /> Download {fileName}
                 </button>
               </div>
 
               <div>
-                <h4 className="font-semibold text-surface-900 text-sm mb-2 flex items-center gap-2"><Icons.Terminal /> CLI Install</h4>
+                <h4 className="font-semibold text-surface-900 text-sm mb-2 flex items-center gap-2"><Icons.Terminal /> CLI Install {isKB && <span className="text-xs font-normal text-emerald-600">(+ guardrails)</span>}</h4>
                 <div className="space-y-2">
                   <div>
                     <p className="text-xs text-surface-500 mb-1">Project-level (this repo only):</p>
@@ -179,13 +208,13 @@ export default function SkillDetailModal({ skill, onClose, onToggle, selected })
               </div>
 
               <div className="border-t border-surface-100 pt-5">
-                <h4 className="font-semibold text-surface-900 text-sm mb-3">Where Skills Can Live</h4>
+                <h4 className="font-semibold text-surface-900 text-sm mb-3">Where {isKB ? 'Knowledgebases' : 'Skills'} Can Live</h4>
                 <div className="space-y-3">
                   <div className="flex gap-3 items-start">
                     <div className="p-1.5 rounded-lg bg-blue-50 text-blue-500 flex-shrink-0 mt-0.5"><Icons.Package /></div>
                     <div>
                       <p className="text-sm font-medium text-surface-800">Project-level <code className="text-xs bg-surface-100 px-1 rounded">.claude/skills/</code></p>
-                      <p className="text-xs text-surface-500">Lives in the repo. Shared via git. Best for project-specific skills.</p>
+                      <p className="text-xs text-surface-500">Lives in the repo. Shared via git. Best for project-specific {isKB ? 'knowledgebases' : 'skills'}.</p>
                     </div>
                   </div>
                   <div className="flex gap-3 items-start">
@@ -199,14 +228,14 @@ export default function SkillDetailModal({ skill, onClose, onToggle, selected })
                     <div className="p-1.5 rounded-lg bg-amber-50 text-amber-500 flex-shrink-0 mt-0.5"><Icons.Globe /></div>
                     <div>
                       <p className="text-sm font-medium text-surface-800">Claude.ai (Web Chat)</p>
-                      <p className="text-xs text-surface-500">Download the SKILL.md, then go to claude.ai &gt; Settings &gt; Skills and upload. Works in browser conversations.</p>
+                      <p className="text-xs text-surface-500">Download the file, then go to claude.ai &gt; Settings &gt; Skills and upload. Works in browser conversations.</p>
                     </div>
                   </div>
                   <div className="flex gap-3 items-start">
                     <div className="p-1.5 rounded-lg bg-green-50 text-green-500 flex-shrink-0 mt-0.5"><Icons.GitPR /></div>
                     <div>
                       <p className="text-sm font-medium text-surface-800">Team Deploy (via PR)</p>
-                      <p className="text-xs text-surface-500">Select skills in this store and create a PR to add them to any team repo.</p>
+                      <p className="text-xs text-surface-500">Select {isKB ? 'knowledgebases' : 'skills'} in this store and create a PR to add them to any team repo.</p>
                     </div>
                   </div>
                 </div>
@@ -214,7 +243,7 @@ export default function SkillDetailModal({ skill, onClose, onToggle, selected })
             </div>
           )}
 
-          {tab === 'create' && (
+          {tab === 'create' && !isKB && (
             <div className="space-y-5">
               <p className="text-sm text-surface-600 leading-relaxed">
                 Want to build something like <strong>{skill.name}</strong>? Copy one of these prompts into Claude Code (or claude.ai) from any project. Claude will generate a properly formatted skill you can contribute back to the library.
