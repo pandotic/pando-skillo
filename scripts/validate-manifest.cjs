@@ -10,8 +10,8 @@ const ROOT = path.resolve(__dirname, '..');
 const MANIFEST_PATH = path.join(ROOT, 'skills-manifest.json');
 const SKILLS_DIR = path.join(ROOT, 'skills');
 
-const VALID_ICONS = ['FileText', 'FileCheck', 'Presentation', 'Table', 'Bot', 'Wrench', 'Clock', 'Package'];
-const VALID_CATEGORIES = ['Documents', 'AI & Automation', 'Developer Tools'];
+const VALID_ICONS = ['FileText', 'FileCheck', 'Presentation', 'Table', 'Bot', 'Wrench', 'Clock', 'Package', 'Component'];
+const VALID_CATEGORIES = ['Documents', 'AI & Automation', 'Developer Tools', 'UI Components'];
 
 let errors = 0;
 let warnings = 0;

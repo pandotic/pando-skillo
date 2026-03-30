@@ -68,5 +68,16 @@
     "triggers": ["schedule", "cron", "recurring", "automate", "interval"],
     "version": "1.0.0",
     "path": "skills/schedule"
+  },
+  {
+    "id": "ui-kit",
+    "name": "UI Kit",
+    "icon": "Package",
+    "category": "UI Components",
+    "description": "Reusable React + Tailwind component library with Modal, Card, SearchInput, Tabs, CopyBlock, and Badge. Includes a full design system with colors, typography, spacing, and layout patterns. Use when building any UI page, panel, dashboard, or admin interface.",
+    "triggers": ["UI", "component", "modal", "card", "dashboard", "admin", "settings panel", "layout", "page"],
+    "version": "1.0.0",
+    "path": "skills/ui-kit",
+    "components": ["modal", "card", "search-input", "tabs", "copy-block", "badge"]
   }
 ]

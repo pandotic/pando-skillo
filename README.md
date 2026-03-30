@@ -12,7 +12,15 @@ pando-skillo/
 │   ├── mindpal/SKILL.md
 │   ├── skill-creator/SKILL.md
 │   ├── schedule/SKILL.md
+│   ├── ui-kit/SKILL.md         <- teaches Claude your design system
 │   └── _template/SKILL.md     <- scaffold for new skills
+├── components/                 <- reusable code (installed with companion skills)
+│   ├── modal/Modal.jsx
+│   ├── card/Card.jsx
+│   ├── search-input/SearchInput.jsx
+│   ├── tabs/Tabs.jsx
+│   ├── copy-block/CopyBlock.jsx
+│   └── badge/Badge.jsx
 ├── skills-manifest.json        <- registry with metadata
 ├── bin/cli.cjs                 <- CLI tool
 ├── src/                        <- Vite React app (componentized)
@@ -56,6 +64,33 @@ Visit the Skills Store web app, select skills, choose a target repo, and create 
 ### Option 4: Manual download
 
 Download SKILL.md from the web UI detail modal and place it wherever you need it.
+
+---
+
+## Skills vs Components
+
+This repo holds two types of things:
+
+| | Skills | Components |
+|---|---|---|
+| **What** | Markdown instructions for Claude | Reusable code (React, JSX, CSS) |
+| **Who reads it** | Claude (AI) | Developers / Claude when building |
+| **Format** | `SKILL.md` with YAML frontmatter | `.jsx`, `.tsx`, `.css` files |
+| **Installed to** | `.claude/skills/` | `components/` in your project |
+| **Purpose** | Teach Claude *when and how* to do something | Give Claude *actual code* to use |
+
+**The power move:** A skill + components together. The `ui-kit` skill teaches Claude your design system (colors, spacing, patterns), and the companion components give it actual code to import. When someone says "build me a settings page," Claude knows your conventions AND has real components to assemble.
+
+```bash
+# Install the ui-kit skill + all 6 components in one command
+npx pando-skillo add ui-kit
+
+# Result:
+# .claude/skills/ui-kit/SKILL.md     <- Claude's design system knowledge
+# components/modal/Modal.jsx          <- Actual Modal component
+# components/card/Card.jsx            <- Actual Card component
+# components/tabs/Tabs.jsx            <- ... and so on
+```
 
 ---
 

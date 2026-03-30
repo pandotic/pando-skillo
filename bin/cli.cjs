@@ -46,6 +46,32 @@ async function loadSkillContent(skillId) {
   return fetch(raw(`skills/${skillId}/SKILL.md`));
 }
 
+async function loadComponentFile(componentId, fileName) {
+  const localPath = path.resolve(__dirname, '..', 'components', componentId, fileName);
+  if (fs.existsSync(localPath)) {
+    return fs.readFileSync(localPath, 'utf8');
+  }
+  return fetch(raw(`components/${componentId}/${fileName}`));
+}
+
+function getLocalComponentFiles(componentId) {
+  const dir = path.resolve(__dirname, '..', 'components', componentId);
+  if (fs.existsSync(dir)) {
+    return fs.readdirSync(dir).filter(f => f.endsWith('.jsx') || f.endsWith('.js') || f.endsWith('.tsx') || f.endsWith('.ts') || f.endsWith('.css'));
+  }
+  return [];
+}
+
+// Known component files (used when fetching remotely)
+const COMPONENT_FILES = {
+  'modal': ['Modal.jsx'],
+  'card': ['Card.jsx'],
+  'search-input': ['SearchInput.jsx'],
+  'tabs': ['Tabs.jsx'],
+  'copy-block': ['CopyBlock.jsx'],
+  'badge': ['Badge.jsx'],
+};
+
 function getGlobalSkillsDir() {
   return path.join(os.homedir(), '.claude', 'skills');
 }
@@ -166,6 +192,30 @@ async function cmdAdd(ids, targetDir, { global: isGlobal, force }) {
     } else {
       console.log(`  add      ${skill.id}${ver} -> ${relPath}`);
       added++;
+    }
+
+    // Install companion component files if this skill has them
+    if (skill.components && !isGlobal) {
+      const componentsDir = path.join(targetDir, 'components');
+      for (const compId of skill.components) {
+        const compDir = path.join(componentsDir, compId);
+        const files = getLocalComponentFiles(compId);
+        const fileList = files.length > 0 ? files : (COMPONENT_FILES[compId] || []);
+        if (fileList.length === 0) continue;
+
+        fs.mkdirSync(compDir, { recursive: true });
+        for (const fileName of fileList) {
+          const destFile = path.join(compDir, fileName);
+          if (fs.existsSync(destFile) && !force) continue;
+          try {
+            const fileContent = await loadComponentFile(compId, fileName);
+            fs.writeFileSync(destFile, fileContent);
+          } catch (e) {
+            // Component file not available remotely, skip silently
+          }
+        }
+        console.log(`  +comp    ${compId}/ -> components/${compId}/`);
+      }
     }
   }
 
