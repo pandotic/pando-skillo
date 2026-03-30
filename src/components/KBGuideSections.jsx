@@ -59,7 +59,7 @@ function Step({ number, title, children }) {
 
 export default function KBGuideSections() {
   return (
-    <div className="mt-10 space-y-4">
+    <div className="space-y-4">
       <div className="flex items-center gap-2 mb-2">
         <div className="h-px flex-1 bg-surface-200" />
         <span className="text-xs font-medium text-surface-400 uppercase tracking-wider">Knowledgebase Guide</span>
