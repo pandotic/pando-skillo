@@ -23,6 +23,28 @@ function Section({ icon, title, subtitle, children, defaultOpen = false }) {
   );
 }
 
+function PromptBlock({ title, prompt }) {
+  const [copied, setCopied] = useState(false);
+  const copy = () => {
+    navigator.clipboard.writeText(prompt).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-1.5">
+        <h4 className="text-sm font-semibold text-surface-800">{title}</h4>
+        <button onClick={copy}
+          className="inline-flex items-center gap-1 text-xs text-surface-400 hover:text-brand-600 transition-colors">
+          {copied ? <><Icons.Check /> Copied</> : <><Icons.Copy /> Copy prompt</>}
+        </button>
+      </div>
+      <pre className="bg-surface-50 border border-surface-200 rounded-lg p-3 text-xs font-mono text-surface-700 whitespace-pre-wrap leading-relaxed cursor-pointer hover:border-brand-300 transition-colors" onClick={copy}>{prompt}</pre>
+    </div>
+  );
+}
+
 function Step({ number, title, children }) {
   return (
     <div className="flex gap-3">
@@ -162,6 +184,84 @@ export default function GuideSections() {
               <li className="text-xs text-surface-600 flex gap-2"><span className="text-green-500 flex-shrink-0">&#10003;</span> Includes concrete examples of what the output should look like</li>
               <li className="text-xs text-surface-600 flex gap-2"><span className="text-green-500 flex-shrink-0">&#10003;</span> Has clear trigger keywords so Claude knows when to activate it</li>
             </ul>
+          </div>
+        </div>
+      </Section>
+
+      {/* PROMPT BUILDER */}
+      <Section
+        icon={<Icons.Wrench />}
+        title="Prompt Builder"
+        subtitle="Copy a prompt, paste into Claude, get a ready-to-share skill"
+      >
+        <div className="pt-4 space-y-5">
+          <p className="text-sm text-surface-600 leading-relaxed">
+            You don't have to write skills by hand. Paste one of these prompts into Claude Code (or claude.ai) and it'll generate a properly formatted skill you can use immediately or contribute to the library. Just fill in the <code className="text-xs bg-surface-100 px-1 rounded">[brackets]</code>.
+          </p>
+
+          <PromptBlock
+            title="Build a skill from a description"
+            prompt={`I want to create a Claude Code skill that [describe what it does — e.g. "generates API documentation from code comments"].
+
+It should trigger when: [list trigger conditions — e.g. "the user mentions API docs, swagger, or openapi"]
+Category: [Documents / AI & Automation / Developer Tools / UI Components]
+
+Generate a complete SKILL.md file with:
+1. YAML frontmatter (name, version "1.0.0", description)
+2. When to Use section with trigger conditions and exclusions
+3. How It Works with numbered steps
+4. At least 2 concrete examples showing user prompts and expected Claude behavior
+5. Rules section with important constraints
+
+Save it to .claude/skills/[skill-id]/SKILL.md`}
+          />
+
+          <PromptBlock
+            title="Turn what I just did into a skill"
+            prompt={`Look at what we just built together in this conversation. Turn it into a reusable Claude Code skill that someone else could install and get the same results.
+
+Create a SKILL.md file with:
+- YAML frontmatter (name, version "1.0.0", description with trigger keywords)
+- When to Use section — what should trigger this skill
+- How It Works — the step-by-step process we followed
+- Examples — based on what we actually did
+- Rules — constraints and things to avoid
+
+Save it to .claude/skills/[good-short-name]/SKILL.md`}
+          />
+
+          <PromptBlock
+            title="Build a reusable component + skill pair"
+            prompt={`I want to create a reusable React + Tailwind component for [describe it — e.g. "a settings panel with grouped form sections"].
+
+Build two things:
+1. A self-contained component file (components/[name]/[Name].jsx) — no external deps beyond React + Tailwind, well-defined props interface
+2. A companion SKILL.md that teaches Claude when to use this component, all props with types, multiple usage examples, and styling conventions
+
+The skill should show Claude how to import, compose, and customize the component in real pages.`}
+          />
+
+          <PromptBlock
+            title="Create a skill and add it to the library"
+            prompt={`I want to create and contribute a skill to our team skill library at pandotic/pando-skillo.
+
+The skill: [describe what it does]
+
+Please:
+1. Create skills/[skill-id]/SKILL.md with full YAML frontmatter and detailed instructions
+2. Add the matching entry to skills-manifest.json with id, name, icon, category, description, triggers, version, author (use my GitHub username), and path
+3. Run npm run validate to make sure everything is consistent
+4. Commit with a descriptive message
+
+Available icons: FileText, FileCheck, Presentation, Table, Bot, Wrench, Clock, Package
+Available categories: Documents, AI & Automation, Developer Tools, UI Components`}
+          />
+
+          <div className="bg-surface-50 rounded-lg p-4">
+            <p className="text-sm font-medium text-surface-800 mb-1">Tip: Use these from any project</p>
+            <p className="text-xs text-surface-600 leading-relaxed">
+              These prompts work in Claude Code, claude.ai, or any Claude-powered tool. The generated SKILL.md is a standalone file — just drop it into <code className="bg-surface-100 px-1 rounded">.claude/skills/</code> in any project and Claude picks it up automatically.
+            </p>
           </div>
         </div>
       </Section>

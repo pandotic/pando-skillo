@@ -41,6 +41,7 @@ Markdown instructions for Claude...
   "description": "Short card description",
   "triggers": [".ext", "keyword"],
   "version": "1.0.0",
+  "author": "github-username",
   "path": "skills/my-skill"
 }
 ```

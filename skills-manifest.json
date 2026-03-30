@@ -7,6 +7,7 @@
     "description": "Create, read, edit, and manipulate Word documents (.docx). Supports formatting, tables of contents, headings, page numbers, letterheads, tracked changes, comments, and more.",
     "triggers": [".docx", "Word doc", "report", "memo", "letter", "template"],
     "version": "1.0.0",
+    "author": "pandotic",
     "path": "skills/docx"
   },
   {
@@ -17,6 +18,7 @@
     "description": "Extract text and tables from PDFs, merge or split documents, rotate pages, add watermarks, fill forms, encrypt/decrypt, extract images, and OCR scanned PDFs.",
     "triggers": [".pdf", "PDF", "form", "extract", "merge", "split"],
     "version": "1.0.0",
+    "author": "pandotic",
     "path": "skills/pdf"
   },
   {
@@ -27,6 +29,7 @@
     "description": "Create slide decks, pitch decks, and presentations. Read, parse, edit, or extract content from .pptx files. Work with templates, layouts, speaker notes, and comments.",
     "triggers": [".pptx", "deck", "slides", "presentation", "pitch deck"],
     "version": "1.0.0",
+    "author": "pandotic",
     "path": "skills/pptx"
   },
   {
@@ -37,6 +40,7 @@
     "description": "Open, read, edit, or create Excel spreadsheets. Supports formulas, formatting, charts, data cleaning, and conversion between tabular formats (.xlsx, .csv, .tsv).",
     "triggers": [".xlsx", "spreadsheet", "Excel", "CSV", "budget", "chart"],
     "version": "1.0.0",
+    "author": "pandotic",
     "path": "skills/xlsx"
   },
   {
@@ -47,6 +51,7 @@
     "description": "Build AI agents and multi-agent workflows on MindPal.space. Configure system instructions, design workflows, set up knowledge sources, and troubleshoot builds.",
     "triggers": ["MindPal", "AI agent", "workflow", "multi-agent"],
     "version": "1.0.0",
+    "author": "pandotic",
     "path": "skills/mindpal"
   },
   {
@@ -57,6 +62,7 @@
     "description": "Create new skills from scratch, modify and improve existing skills, run evals to test performance, benchmark with variance analysis, and optimize descriptions for better triggering.",
     "triggers": ["create skill", "new skill", "skill eval", "benchmark"],
     "version": "1.0.0",
+    "author": "pandotic",
     "path": "skills/skill-creator"
   },
   {
@@ -67,6 +73,7 @@
     "description": "Create reusable scheduled tasks that can run on demand or automatically on an interval. Turn any workflow into a repeatable, automated process.",
     "triggers": ["schedule", "cron", "recurring", "automate", "interval"],
     "version": "1.0.0",
+    "author": "pandotic",
     "path": "skills/schedule"
   },
   {
@@ -77,6 +84,7 @@
     "description": "Reusable React + Tailwind component library with Modal, Card, SearchInput, Tabs, CopyBlock, and Badge. Includes a full design system with colors, typography, spacing, and layout patterns. Use when building any UI page, panel, dashboard, or admin interface.",
     "triggers": ["UI", "component", "modal", "card", "dashboard", "admin", "settings panel", "layout", "page"],
     "version": "1.0.0",
+    "author": "pandotic",
     "path": "skills/ui-kit",
     "components": ["modal", "card", "search-input", "tabs", "copy-block", "badge"]
   }
