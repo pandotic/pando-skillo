@@ -115,16 +115,47 @@
           </div>
           <span className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full ${c.bg} ${c.text} mb-2`}>{skill.category}</span>
           <p className="text-sm text-surface-700 leading-relaxed mb-3 line-clamp-3">{skill.description}</p>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-1.5 mb-2">
             {skill.triggers.slice(0, 4).map(t => (
               <span key={t} className="text-xs bg-surface-100 text-surface-600 px-2 py-0.5 rounded font-mono">{t}</span>
             ))}
           </div>
+          {skill.author && (
+            <div className="flex items-center gap-1.5 pt-2 border-t border-surface-100">
+              <img src={`https://github.com/${skill.author}.png?size=32`} alt="" className="w-4 h-4 rounded-full" />
+              <span className="text-xs text-surface-400">by <a href={`https://github.com/${skill.author}`} target="_blank" rel="noopener noreferrer" className="text-surface-500 hover:text-brand-600" onClick={e => e.stopPropagation()}>{skill.author}</a></span>
+            </div>
+          )}
         </div>
       );
     }
 
     // ─── Skill Detail Modal ────────────────────────────────────────────────────
+    function PromptCopyBlock({ title, prompt, copied: externalCopied, onCopy: externalOnCopy }) {
+      const [internalCopied, setInternalCopied] = useState(null);
+      const displayPrompt = prompt.replace(/\\n/g, '\n');
+      const handleCopy = externalOnCopy && externalOnCopy !== Function.prototype
+        ? (text, label) => externalOnCopy(text, label)
+        : (text, label) => {
+            navigator.clipboard.writeText(text).then(() => {
+              setInternalCopied(label);
+              setTimeout(() => setInternalCopied(null), 2000);
+            });
+          };
+      const isCopied = externalCopied != null ? externalCopied === `prompt-${title}` : internalCopied === `prompt-${title}`;
+      return (
+        React.createElement('div', null,
+          React.createElement('div', { className: 'flex items-center justify-between mb-1.5' },
+            React.createElement('h4', { className: 'text-sm font-semibold text-surface-800' }, title),
+            React.createElement('button', { onClick: () => handleCopy(displayPrompt, `prompt-${title}`), className: 'inline-flex items-center gap-1 text-xs text-surface-400 hover:text-brand-600 transition-colors' },
+              isCopied ? React.createElement(React.Fragment, null, React.createElement(Icons.Check), ' Copied') : React.createElement(React.Fragment, null, React.createElement(Icons.Copy), ' Copy prompt')
+            )
+          ),
+          React.createElement('pre', { className: 'bg-surface-50 border border-surface-200 rounded-lg p-3 text-xs font-mono text-surface-700 whitespace-pre-wrap leading-relaxed cursor-pointer hover:border-brand-300 transition-colors', onClick: () => handleCopy(displayPrompt, `prompt-${title}`) }, displayPrompt)
+        )
+      );
+    }
+
     function SkillDetailModal({ skill, onClose, onToggle, selected }) {
       const [content, setContent] = useState(null);
       const [loading, setLoading] = useState(true);
@@ -215,7 +246,13 @@
                     <h3 className="font-semibold text-lg text-surface-900">{skill.name}</h3>
                     {skill.version && <span className="text-[10px] font-mono text-surface-400 bg-surface-100 px-1.5 py-0.5 rounded">v{skill.version}</span>}
                   </div>
-                  <span className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full ${c.bg} ${c.text}`}>{skill.category}</span>
+                  <div className="flex items-center gap-2">
+                    <span className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full ${c.bg} ${c.text}`}>{skill.category}</span>
+                    {skill.author && React.createElement('span', { className: 'flex items-center gap-1 text-xs text-surface-400' },
+                      React.createElement('img', { src: `https://github.com/${skill.author}.png?size=32`, alt: '', className: 'w-3.5 h-3.5 rounded-full' }),
+                      React.createElement('a', { href: `https://github.com/${skill.author}`, target: '_blank', rel: 'noopener noreferrer', className: 'hover:text-brand-600' }, skill.author)
+                    )}
+                  </div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -229,7 +266,7 @@
 
             {/* Tabs */}
             <div className="flex border-b border-surface-100 px-5">
-              {[['preview', 'Preview'], ['install', 'Install & Share']].map(([key, label]) => (
+              {[['preview', 'Preview'], ['install', 'Install & Share'], ['create', 'Create Your Own']].map(([key, label]) => (
                 <button key={key} onClick={() => setTab(key)}
                   className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${tab === key ? 'border-brand-600 text-brand-700' : 'border-transparent text-surface-500 hover:text-surface-700'}`}>
                   {label}
@@ -332,6 +369,32 @@
                         </div>
                       </div>
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {tab === 'create' && (
+                <div className="space-y-5">
+                  <p className="text-sm text-surface-600 leading-relaxed">
+                    Want to build something like <strong>{skill.name}</strong>? Copy one of these prompts into Claude Code (or claude.ai) from any project. Claude will generate a properly formatted skill you can contribute back to the library.
+                  </p>
+                  <PromptCopyBlock
+                    title="Create a similar skill"
+                    prompt={`Create a new Claude Code skill similar to "${skill.name}" but for [describe your use case].\n\nThe skill should follow this format:\n- YAML frontmatter with name, version, description\n- Clear "When to Use" section with trigger conditions\n- Step-by-step "How It Works" instructions\n- Concrete examples with sample user prompts and expected behavior\n- Rules section with constraints\n\nSave the output as a single SKILL.md file.`}
+                    copied={copied} onCopy={copyToClipboard} />
+                  <PromptCopyBlock
+                    title="Create a skill from scratch"
+                    prompt={`I want to create a Claude Code skill that [describe what it does].\n\nIt should trigger when: [list trigger conditions]\nCategory: [Documents / AI & Automation / Developer Tools / UI Components]\n\nGenerate a complete SKILL.md file with:\n1. YAML frontmatter (name, version "1.0.0", description)\n2. When to Use section with trigger conditions and exclusions\n3. How It Works with numbered steps\n4. At least 2 concrete examples showing user prompts and expected Claude behavior\n5. Rules section with important constraints\n\nSave it to .claude/skills/[skill-id]/SKILL.md`}
+                    copied={copied} onCopy={copyToClipboard} />
+                  <PromptCopyBlock
+                    title="Create a skill + component pair"
+                    prompt={`I want to create a reusable React + Tailwind component for [describe it].\n\nBuild two things:\n1. A component file (components/[name]/[Name].jsx) — self-contained, no external deps, accepts props, uses Tailwind for styling\n2. A companion SKILL.md that teaches Claude when and how to use the component, including all props with types, usage examples, and styling conventions\n\nThe skill should reference the component and show Claude how to import and compose it in different contexts.`}
+                    copied={copied} onCopy={copyToClipboard} />
+                  <div className="bg-brand-50 rounded-lg p-4">
+                    <p className="text-sm font-medium text-brand-800 mb-1">Share it back</p>
+                    <p className="text-xs text-brand-700 leading-relaxed">
+                      Once Claude generates your skill, test it in your project. When it works well, open a PR to pandotic/pando-skillo — add the SKILL.md to skills/your-skill/ and an entry to skills-manifest.json. Your name shows up as the author.
+                    </p>
                   </div>
                 </div>
               )}
@@ -547,6 +610,23 @@
                     )
                   )
                 )
+              )
+            )
+          ),
+
+          // Prompt Builder
+          React.createElement(GuideSection, { icon: React.createElement(Icons.Wrench), title: 'Prompt Builder', subtitle: 'Copy a prompt, paste into Claude, get a ready-to-share skill' },
+            React.createElement('div', { className: 'pt-4 space-y-5' },
+              React.createElement('p', { className: 'text-sm text-surface-600 leading-relaxed' },
+                "You don't have to write skills by hand. Paste one of these prompts into Claude Code (or claude.ai) and it'll generate a properly formatted skill you can use immediately or contribute to the library. Just fill in the [brackets]."
+              ),
+              React.createElement(PromptCopyBlock, { title: 'Build a skill from a description', prompt: 'I want to create a Claude Code skill that [describe what it does — e.g. "generates API documentation from code comments"].\n\nIt should trigger when: [list trigger conditions — e.g. "the user mentions API docs, swagger, or openapi"]\nCategory: [Documents / AI & Automation / Developer Tools / UI Components]\n\nGenerate a complete SKILL.md file with:\n1. YAML frontmatter (name, version "1.0.0", description)\n2. When to Use section with trigger conditions and exclusions\n3. How It Works with numbered steps\n4. At least 2 concrete examples showing user prompts and expected Claude behavior\n5. Rules section with important constraints\n\nSave it to .claude/skills/[skill-id]/SKILL.md' }),
+              React.createElement(PromptCopyBlock, { title: 'Turn what I just did into a skill', prompt: 'Look at what we just built together in this conversation. Turn it into a reusable Claude Code skill that someone else could install and get the same results.\n\nCreate a SKILL.md file with:\n- YAML frontmatter (name, version "1.0.0", description with trigger keywords)\n- When to Use section — what should trigger this skill\n- How It Works — the step-by-step process we followed\n- Examples — based on what we actually did\n- Rules — constraints and things to avoid\n\nSave it to .claude/skills/[good-short-name]/SKILL.md' }),
+              React.createElement(PromptCopyBlock, { title: 'Build a reusable component + skill pair', prompt: 'I want to create a reusable React + Tailwind component for [describe it — e.g. "a settings panel with grouped form sections"].\n\nBuild two things:\n1. A self-contained component file (components/[name]/[Name].jsx) — no external deps beyond React + Tailwind, well-defined props interface\n2. A companion SKILL.md that teaches Claude when to use this component, all props with types, multiple usage examples, and styling conventions\n\nThe skill should show Claude how to import, compose, and customize the component in real pages.' }),
+              React.createElement(PromptCopyBlock, { title: 'Create a skill and add it to the library', prompt: 'I want to create and contribute a skill to our team skill library at pandotic/pando-skillo.\n\nThe skill: [describe what it does]\n\nPlease:\n1. Create skills/[skill-id]/SKILL.md with full YAML frontmatter and detailed instructions\n2. Add the matching entry to skills-manifest.json with id, name, icon, category, description, triggers, version, author (use my GitHub username), and path\n3. Run npm run validate to make sure everything is consistent\n4. Commit with a descriptive message\n\nAvailable icons: FileText, FileCheck, Presentation, Table, Bot, Wrench, Clock, Package\nAvailable categories: Documents, AI & Automation, Developer Tools, UI Components' }),
+              React.createElement('div', { className: 'bg-surface-50 rounded-lg p-4' },
+                React.createElement('p', { className: 'text-sm font-medium text-surface-800 mb-1' }, 'Tip: Use these from any project'),
+                React.createElement('p', { className: 'text-xs text-surface-600 leading-relaxed' }, "These prompts work in Claude Code, claude.ai, or any Claude-powered tool. The generated SKILL.md is a standalone file — just drop it into .claude/skills/ in any project and Claude picks it up automatically.")
               )
             )
           ),

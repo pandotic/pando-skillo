@@ -21,11 +21,17 @@ export default function SkillCard({ skill, selected, onToggle, onDetail }) {
       </div>
       <span className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full ${c.bg} ${c.text} mb-2`}>{skill.category}</span>
       <p className="text-sm text-surface-700 leading-relaxed mb-3 line-clamp-3">{skill.description}</p>
-      <div className="flex flex-wrap gap-1.5">
+      <div className="flex flex-wrap gap-1.5 mb-2">
         {skill.triggers.slice(0, 4).map(t => (
           <span key={t} className="text-xs bg-surface-100 text-surface-600 px-2 py-0.5 rounded font-mono">{t}</span>
         ))}
       </div>
+      {skill.author && (
+        <div className="flex items-center gap-1.5 pt-2 border-t border-surface-100">
+          <img src={`https://github.com/${skill.author}.png?size=32`} alt="" className="w-4 h-4 rounded-full" />
+          <span className="text-xs text-surface-400">by <a href={`https://github.com/${skill.author}`} target="_blank" rel="noopener noreferrer" className="text-surface-500 hover:text-brand-600" onClick={e => e.stopPropagation()}>{skill.author}</a></span>
+        </div>
+      )}
     </div>
   );
 }

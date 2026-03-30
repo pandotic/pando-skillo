@@ -91,7 +91,15 @@ export default function SkillDetailModal({ skill, onClose, onToggle, selected })
                 <h3 className="font-semibold text-lg text-surface-900">{skill.name}</h3>
                 {skill.version && <span className="text-[10px] font-mono text-surface-400 bg-surface-100 px-1.5 py-0.5 rounded">v{skill.version}</span>}
               </div>
-              <span className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full ${c.bg} ${c.text}`}>{skill.category}</span>
+              <div className="flex items-center gap-2">
+                <span className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full ${c.bg} ${c.text}`}>{skill.category}</span>
+                {skill.author && (
+                  <span className="flex items-center gap-1 text-xs text-surface-400">
+                    <img src={`https://github.com/${skill.author}.png?size=32`} alt="" className="w-3.5 h-3.5 rounded-full" />
+                    <a href={`https://github.com/${skill.author}`} target="_blank" rel="noopener noreferrer" className="hover:text-brand-600">{skill.author}</a>
+                  </span>
+                )}
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -104,7 +112,7 @@ export default function SkillDetailModal({ skill, onClose, onToggle, selected })
         </div>
 
         <div className="flex border-b border-surface-100 px-5">
-          {[['preview', 'Preview'], ['install', 'Install & Share']].map(([key, label]) => (
+          {[['preview', 'Preview'], ['install', 'Install & Share'], ['create', 'Create Your Own']].map(([key, label]) => (
             <button key={key} onClick={() => setTab(key)}
               className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${tab === key ? 'border-brand-600 text-brand-700' : 'border-transparent text-surface-500 hover:text-surface-700'}`}>
               {label}
@@ -202,6 +210,81 @@ export default function SkillDetailModal({ skill, onClose, onToggle, selected })
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {tab === 'create' && (
+            <div className="space-y-5">
+              <p className="text-sm text-surface-600 leading-relaxed">
+                Want to build something like <strong>{skill.name}</strong>? Copy one of these prompts into Claude Code (or claude.ai) from any project. Claude will generate a properly formatted skill you can contribute back to the library.
+              </p>
+
+              <div>
+                <h4 className="font-semibold text-surface-900 text-sm mb-2">Create a similar skill</h4>
+                <p className="text-xs text-surface-500 mb-2">Paste this into Claude Code to generate a new skill inspired by this one:</p>
+                <div className="relative">
+                  <pre className="bg-surface-50 border border-surface-200 rounded-lg p-3 text-xs font-mono text-surface-800 whitespace-pre-wrap leading-relaxed">{`Create a new Claude Code skill similar to "${skill.name}" but for [describe your use case].
+
+The skill should follow this format:
+- YAML frontmatter with name, version, description
+- Clear "When to Use" section with trigger conditions
+- Step-by-step "How It Works" instructions
+- Concrete examples with sample user prompts and expected behavior
+- Rules section with constraints
+
+Save the output as a single SKILL.md file.`}</pre>
+                  <CopyButton
+                    text={`Create a new Claude Code skill similar to "${skill.name}" but for [describe your use case].\n\nThe skill should follow this format:\n- YAML frontmatter with name, version, description\n- Clear "When to Use" section with trigger conditions\n- Step-by-step "How It Works" instructions\n- Concrete examples with sample user prompts and expected behavior\n- Rules section with constraints\n\nSave the output as a single SKILL.md file.`}
+                    label="prompt-similar" copied={copied} onCopy={copyToClipboard} />
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-surface-900 text-sm mb-2">Create a skill from scratch</h4>
+                <p className="text-xs text-surface-500 mb-2">Describe what you want and Claude builds the whole thing:</p>
+                <div className="relative">
+                  <pre className="bg-surface-50 border border-surface-200 rounded-lg p-3 text-xs font-mono text-surface-800 whitespace-pre-wrap leading-relaxed">{`I want to create a Claude Code skill that [describe what it does].
+
+It should trigger when: [list trigger conditions]
+Category: [Documents / AI & Automation / Developer Tools / UI Components]
+
+Generate a complete SKILL.md file with:
+1. YAML frontmatter (name, version "1.0.0", description)
+2. When to Use section with trigger conditions and exclusions
+3. How It Works with numbered steps
+4. At least 2 concrete examples showing user prompts and expected Claude behavior
+5. Rules section with important constraints
+
+Save it to .claude/skills/[skill-id]/SKILL.md`}</pre>
+                  <CopyButton
+                    text={`I want to create a Claude Code skill that [describe what it does].\n\nIt should trigger when: [list trigger conditions]\nCategory: [Documents / AI & Automation / Developer Tools / UI Components]\n\nGenerate a complete SKILL.md file with:\n1. YAML frontmatter (name, version "1.0.0", description)\n2. When to Use section with trigger conditions and exclusions\n3. How It Works with numbered steps\n4. At least 2 concrete examples showing user prompts and expected Claude behavior\n5. Rules section with important constraints\n\nSave it to .claude/skills/[skill-id]/SKILL.md`}
+                    label="prompt-scratch" copied={copied} onCopy={copyToClipboard} />
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-surface-900 text-sm mb-2">Create a skill + component</h4>
+                <p className="text-xs text-surface-500 mb-2">For UI components that come with a companion skill:</p>
+                <div className="relative">
+                  <pre className="bg-surface-50 border border-surface-200 rounded-lg p-3 text-xs font-mono text-surface-800 whitespace-pre-wrap leading-relaxed">{`I want to create a reusable React + Tailwind component for [describe the component — e.g. "a data table with sorting and pagination"].
+
+Build two things:
+1. A component file (components/[name]/[Name].jsx) — self-contained, no external deps, accepts props, uses Tailwind for styling
+2. A companion SKILL.md that teaches Claude when and how to use the component, including all props with types, usage examples, and styling conventions
+
+The skill should reference the component and show Claude how to import and compose it in different contexts.`}</pre>
+                  <CopyButton
+                    text={`I want to create a reusable React + Tailwind component for [describe the component — e.g. "a data table with sorting and pagination"].\n\nBuild two things:\n1. A component file (components/[name]/[Name].jsx) — self-contained, no external deps, accepts props, uses Tailwind for styling\n2. A companion SKILL.md that teaches Claude when and how to use the component, including all props with types, usage examples, and styling conventions\n\nThe skill should reference the component and show Claude how to import and compose it in different contexts.`}
+                    label="prompt-component" copied={copied} onCopy={copyToClipboard} />
+                </div>
+              </div>
+
+              <div className="bg-brand-50 rounded-lg p-4">
+                <p className="text-sm font-medium text-brand-800 mb-1">Share it back</p>
+                <p className="text-xs text-brand-700 leading-relaxed">
+                  Once Claude generates your skill, test it in your project. When it works well, open a PR to <code className="bg-brand-100 px-1 rounded">pandotic/pando-skillo</code> — add the SKILL.md to <code className="bg-brand-100 px-1 rounded">skills/your-skill/</code> and an entry to <code className="bg-brand-100 px-1 rounded">skills-manifest.json</code>. Your name shows up as the author.
+                </p>
               </div>
             </div>
           )}
