@@ -87,5 +87,115 @@
     "author": "pandotic",
     "path": "skills/ui-kit",
     "components": ["modal", "card", "search-input", "tabs", "copy-block", "badge"]
+  },
+  {
+    "id": "architecture-visualizer",
+    "name": "Architecture Visualizer",
+    "icon": "Zap",
+    "category": "Developer Tools",
+    "description": "Generate interactive architecture visualizations for any project. Produces data files and React components showing nodes, connections, layers, and dependency graphs.",
+    "triggers": ["architecture diagram", "system architecture", "codebase visualization", "component dependency", "service map"],
+    "version": "1.0.0",
+    "author": "pandotic",
+    "path": "skills/architecture-visualizer"
+  },
+  {
+    "id": "gemini-prompting",
+    "name": "Gemini Prompting",
+    "icon": "Bot",
+    "category": "AI & Automation",
+    "description": "Google Gemini prompting best practices and configuration reference for Flash, Pro, and image generation models. Covers JSON mode, thinking levels, temperature, and prompt structure.",
+    "triggers": ["Gemini", "Google AI", "Gemini API", "Gemini prompt", "Nano Banana", "Gemini Flash", "Gemini Pro"],
+    "version": "1.0.0",
+    "author": "pandotic",
+    "path": "skills/gemini-prompting"
+  },
+  {
+    "id": "google-oauth-supabase",
+    "name": "Google OAuth + Supabase",
+    "icon": "Shield",
+    "category": "Developer Tools",
+    "description": "Set up Google OAuth sign-in for any Supabase project end-to-end. Covers GCP credentials, Supabase provider config, frontend button code, and local dev setup.",
+    "triggers": ["Google OAuth", "Google sign-in", "Supabase auth", "social auth", "signInWithOAuth"],
+    "version": "1.0.0",
+    "author": "pandotic",
+    "path": "skills/google-oauth-supabase"
+  },
+  {
+    "id": "nano-banana",
+    "name": "Nano Banana Image Gen",
+    "icon": "Zap",
+    "category": "AI & Automation",
+    "description": "Gemini image generation prompt engineering and best practices. Covers model selection, prompt structure, style anchors, and educational illustration patterns.",
+    "triggers": ["image generation", "Gemini image", "Nano Banana", "AI illustration", "educational images"],
+    "version": "1.0.0",
+    "author": "pandotic",
+    "path": "skills/nano-banana"
+  },
+  {
+    "id": "subject-kb",
+    "name": "Subject Knowledge Base",
+    "icon": "BookOpen",
+    "category": "AI & Automation",
+    "description": "Create or update Subject Knowledge Bases that power AI generation functions (study guides, flashcards, quizzes, games) and chatbots for any subject.",
+    "triggers": ["subject KB", "knowledge base", "study partner", "learning content", "subject-specific"],
+    "version": "1.0.0",
+    "author": "pandotic",
+    "path": "skills/subject-kb"
+  },
+  {
+    "id": "tensorlake",
+    "name": "Tensorlake Document AI",
+    "icon": "FileCheck",
+    "category": "Developer Tools",
+    "description": "Complete Tensorlake API reference for document parsing, structured extraction, table extraction, page classification, and large PDF handling.",
+    "triggers": ["Tensorlake", "document parsing", "structured extraction", "table extraction", "PDF parsing"],
+    "version": "1.0.0",
+    "author": "pandotic",
+    "path": "skills/tensorlake"
+  },
+  {
+    "id": "unstructured-io",
+    "name": "Unstructured.io",
+    "icon": "FileCheck",
+    "category": "Developer Tools",
+    "description": "Complete Unstructured.io API reference for document parsing and extraction. Covers partitioning strategies, chunking, element types, OCR, and VLM configuration.",
+    "triggers": ["Unstructured", "document parsing", "OCR", "partitioning", "chunking strategy"],
+    "version": "1.0.0",
+    "author": "pandotic",
+    "path": "skills/unstructured-io"
+  },
+  {
+    "id": "voice-enablement",
+    "name": "Voice Enablement",
+    "icon": "Zap",
+    "category": "Developer Tools",
+    "description": "Production-tested voice patterns with Deepgram STT, ElevenLabs TTS, and Silero VAD. Covers conversation mode, echo prevention, and voice UI architecture.",
+    "triggers": ["voice", "speech-to-text", "text-to-speech", "Deepgram", "ElevenLabs", "VAD", "conversation mode"],
+    "version": "1.0.0",
+    "author": "pandotic",
+    "path": "skills/voice-enablement"
+  },
+  {
+    "id": "voyage-ai",
+    "name": "Voyage AI Embeddings",
+    "icon": "Zap",
+    "category": "AI & Automation",
+    "description": "Voyage AI embeddings, contextualized chunk embeddings, and rerankers for RAG systems. Covers model selection, hybrid retrieval, pgvector pipelines, and production patterns.",
+    "triggers": ["Voyage AI", "embeddings", "reranker", "RAG", "semantic search", "vector search"],
+    "version": "1.0.0",
+    "author": "pandotic",
+    "path": "skills/voyage-ai"
+  },
+  {
+    "id": "pandotic-content",
+    "name": "Pandotic Content Generator",
+    "icon": "FileText",
+    "category": "Documents",
+    "description": "Generate comprehensive marketing content, product state audits, and screenshot capture briefs from actual codebases. Turn any project into marketing-ready assets.",
+    "triggers": ["marketing content", "case study", "portfolio", "project review", "screenshot brief", "product audit"],
+    "version": "1.0.0",
+    "author": "pandotic",
+    "path": "skills/pandotic-content"
   }
 ]
