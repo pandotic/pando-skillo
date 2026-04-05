@@ -5,10 +5,12 @@ description: |
   content, product state audits, and screenshot capture briefs from the actual codebase.
   Use when asked about: marketing content for a Pandotic project, case study, portfolio
   piece, project review, website copy, video script, sales blurb, screenshot brief,
-  product audit, or any request to turn a Pandotic project into marketing-ready assets.
-  Also use when the user says "pandotic-content", "project content", "marketing content",
-  "case study", "portfolio entry", "screenshot brief", or asks to document a project
-  for the Pandotic website or sales materials — even if they don't use those exact words.
+  product audit, product landing page, or any request to turn a Pandotic project into
+  marketing-ready assets. Also use when the user says "pandotic-content", "project content",
+  "marketing content", "case study", "portfolio entry", "screenshot brief", "product page",
+  "landing page", or asks to document a project for the Pandotic website or sales materials
+  — even if they don't use those exact words. Also triggers for file output, saving content
+  to the pandotic_site repo, or generating project pages for pandotic.ai.
   Trigger for any Pandotic project, not just Study Partner.
 user-invocable: true
 ---
@@ -48,10 +50,44 @@ When you can inspect the running product:
 
 ## Phase 3: Synthesize Content + Screenshot Brief
 
-After analysis, produce all 15 output sections plus optional extras. Pay special attention to Sections 9-12, which form the strategic core: they map what was built into reusable capabilities, extensible patterns, and new business opportunities for Pandotic.
+After analysis, produce all 16 output sections plus optional extras. Pay special attention to Sections 9-12, which form the strategic core: they map what was built into reusable capabilities, extensible patterns, and new business opportunities for Pandotic. Section 16 is the one-page product landing page — a CMS-ready synthesis of the best content for `pandotic.ai/<project-slug>`.
 
 Read `references/output-sections.md` for the complete output template with all section specs.
 Read `references/screenshot-brief.md` for the Claude Chrome screenshot brief format.
+
+## Phase 4: Write Output Files
+
+After generating all content, save each section to its own file — both locally in the project and in the pandotic website repo.
+
+Read `references/output-file-map.md` for the complete section-to-file mapping, directory structure, and metadata schema.
+
+### Determine the Project Slug
+
+1. Check `package.json` name field, the repo folder name, or ask the user
+2. Slugify: lowercase, hyphens, no special characters (e.g., "Study Partner" becomes `study-partner`)
+
+### Write Files Locally
+
+Create a `pandotic-content-output/<project-slug>/` directory in the current project repo and write all output files there. This serves as the local working copy.
+
+### Push to pandotic_site Repo
+
+Also write the same files to the `pandotic/pandotic_site` GitHub repo at:
+
+```
+docs/projects/<project-slug>/
+```
+
+This is the canonical location that the pandotic.ai website builds from. Use the GitHub API (via MCP tools if available) or instruct the user to copy/PR the files if direct access isn't available. The goal is that content lands in `docs/projects/<slug>/` so the CMS and site builder can consume it automatically.
+
+### File Output Rules
+
+- **Sections 1 and 2** (project understanding, code review) are working notes — do NOT write them to files. They stay in conversation only.
+- **Sections 9 and 10** (secret sauce, extensible capabilities) go in an `internal/` subdirectory — they are not for public content.
+- **Section 15** (missing info / gaps) stays in conversation only — it's an action item list for the team.
+- Every markdown file gets YAML frontmatter for CMS ingestion (see the file map reference for the schema).
+- Write a `metadata.yaml` at the project root with project-level metadata.
+- Always confirm the project slug and output path with the user before writing.
 
 ## About Pandotic — Voice and Positioning
 

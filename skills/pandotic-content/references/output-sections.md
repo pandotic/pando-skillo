@@ -1,6 +1,6 @@
 # Output Sections — Complete Template
 
-Produce all 13 sections below with clear headers. The content should communicate what was built, what problem it solves, what's unique, what's most powerful, and what capabilities are extensible to other projects.
+Produce all 16 sections below with clear headers. The content should communicate what was built, what problem it solves, what's unique, what's most powerful, and what capabilities are extensible to other projects.
 
 ---
 
@@ -248,6 +248,85 @@ List the highest-value missing inputs that would improve the final assets:
 - Anything that would make the content more credible
 
 Do not stall because these are missing. Produce the best grounded draft first, then list gaps.
+
+---
+
+## 16. One-Page Product Landing Page
+
+Write a complete, structured one-page product landing page for use at `pandotic.ai/<project-slug>`. This page synthesizes the best content from other sections into a single compelling page that can be loaded into a CMS.
+
+This is saved as `product-page.md` in the output directory.
+
+### YAML Frontmatter
+
+Every product page starts with CMS-ready frontmatter:
+
+```yaml
+---
+title: "<Project Name>"
+slug: "<project-slug>"
+tagline: "<subheadline text>"
+hero_screenshot: "screenshots/<filename>"
+video_id: "<project-slug>-long"
+has_live_demo: true/false
+demo_url: "<url or null>"
+own_site_url: "<url or null>"
+status: draft
+generated: <ISO 8601 date>
+---
+```
+
+- If the project has its own website, set `own_site_url` and make the primary CTA link there.
+- If it's demo-only, set `has_live_demo: true` with the demo URL, or `false` if there's no public demo yet.
+
+### Page Structure
+
+#### Hero Section
+- **Headline** — the single most compelling statement about what this product does (draw from Section 3 headline or Section 5 taglines)
+- **Subheadline** — 1-2 sentences expanding the headline
+- **Screenshot placeholder** — reference the top-priority screenshot from Section 13: `![Hero screenshot](screenshots/<filename>)`
+- **Primary CTA** — adapt based on project state:
+  - Has its own site: "Visit <project-name>" linking to `own_site_url`
+  - Has a live demo: "Try the demo" linking to `demo_url`
+  - No public access yet: "Learn more" or "Get in touch"
+
+#### What It Solves
+- 2-3 short paragraphs describing the problem and who has it
+- Draw from the Challenge section of the case study (Section 3) but make it punchier and more direct
+- End with a clear transition into the solution
+
+#### How It Works
+- 3-5 key capabilities, each with:
+  - A short bold title
+  - 1-2 sentence description focused on user value
+- Draw from Section 8 (Standout Features) — pick the strongest ones
+- Use outcome-oriented language, not feature-dumping
+
+#### Video Section
+- Embed placeholder for the video: `{{video-embed: <project-slug>-long}}`
+- Below it, a 1-sentence description of what the viewer will see
+- If the 30-second version is more appropriate for the page context, use `{{video-embed: <project-slug>-short}}` instead and note it
+- These videos are produced from the scripts in Sections 6 and 7 — the landing page is where they live
+
+#### Why It's Different
+- 2-3 short paragraphs drawing from Section 12 (Technical Differentiators) and the "Why It Works Better" part of Section 3
+- Translate technical strengths into business language
+
+#### Proof Points
+- Select the 4-6 strongest proof points from Section 11
+- Format as a visual grid or short bullet list
+
+#### About Pandotic (Footer Context)
+- 2-3 sentences about Pandotic's role — draw from Section 3's "Pandotic's Role" subsection
+- Soft CTA: "Want to build something like this? Let's talk."
+- Link placeholder: `{{contact-link}}`
+
+### Rules for This Section
+- This page must stand completely on its own — a reader who sees nothing else should understand the product
+- Do not reference other sections ("as mentioned in the case study") — synthesize the content directly
+- Prefer the most concrete, specific content available
+- Keep the total length to roughly 600-900 words of body content (excluding frontmatter)
+- The page will live at `pandotic.ai/<project-slug>` (e.g., `pandotic.ai/thankbetter`) — write it for that context
 
 ---
 
