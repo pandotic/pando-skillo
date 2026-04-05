@@ -218,7 +218,7 @@ Each paragraph should explain a technical choice or architectural pattern in pla
 
 ## 13. Claude Chrome Screenshot Brief
 
-See `references/screenshot-brief.md` for the full specification.
+> **Note:** The full screenshot brief spec is now inlined in SKILL.md Phase 4, Section 13. See the main skill file for the complete capture brief template including pre-capture verification, capture priorities, shot-by-shot instructions, quality rules, marketing readiness flags, and top 5 must-have captures.
 
 ---
 
