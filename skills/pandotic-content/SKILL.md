@@ -23,7 +23,24 @@ Turn the current state of any Pandotic project into grounded, accurate marketing
 
 ## How This Works — Phased Execution
 
-This skill runs in **4 phases** to keep output manageable. When triggered, ask the user which phase to run — or offer to run them in sequence, pausing between each for review.
+This skill runs in **4 phases** to keep output manageable. The default is to run all phases in sequence.
+
+### Step 0: Orientation (Always First)
+
+Before doing any deep work, your **first response** should be a brief orientation that gives the user a chance to steer:
+
+1. **What this skill does** — 2-3 sentences explaining you'll produce marketing content, internal strategy notes, screenshot briefs, and a product landing page from the actual codebase
+2. **What the outputs will be** — show the phase table below so they know what's coming
+3. **Quick project scan** — do a fast read of README, package.json, and top-level files. Summarize in 3-5 bullet points: what the project appears to be, who it's for, what stack it uses, what state it's in
+4. **Questions / clarifications** — ask anything you need before starting:
+   - What to emphasize (tone, angle, audience)?
+   - Any features to highlight or skip?
+   - Project slug preference?
+   - Any directional notes?
+
+**Wait for the user to respond** before proceeding to Phase 1. If they say "go" or "run it" with no notes, that's fine — proceed.
+
+### Phase Overview
 
 | Phase | What it produces | Sections |
 |-------|-----------------|----------|
@@ -32,9 +49,11 @@ This skill runs in **4 phases** to keep output manageable. When triggered, ask t
 | **Phase 3: Strategy & Synthesis** | Internal capabilities, proof points, differentiators, product page | 9-12, 16 |
 | **Phase 4: Screenshots & File Output** | Screenshot brief, links, gaps + write all files | 13-15, file output |
 
-**Before any phase**, capture the user's directional notes (what to emphasize, tone, format). If they didn't provide notes, ask — even a few sentences helps.
+### Default: Run All Phases in Sequence
 
-**Between phases**, summarize what was produced and confirm the user wants to continue to the next phase.
+After the user confirms from Step 0, **run all 4 phases automatically** in order. Between each phase, give a brief summary of what was produced (2-3 sentences, not a repeat of the content) and then continue to the next phase without waiting — unless the user previously asked to pause between phases.
+
+The user can also request a single phase (e.g., "just run Phase 2") if they want targeted output.
 
 ---
 
