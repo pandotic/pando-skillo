@@ -109,9 +109,35 @@ export default function App() {
     setShowRepoPicker(true);
     setReposLoading(true);
     try {
-      const r = await fetch('https://api.github.com/user/repos?per_page=100&sort=updated&affiliation=owner,collaborator,organization_member', { headers: { Authorization: `token ${ghToken}` } });
-      const data = await r.json();
-      setRepos(data.filter(r => r.permissions?.push));
+      const h = { Authorization: `token ${ghToken}` };
+      const allRepos = new Map(); // Use Map to deduplicate by repo ID
+
+      // Fetch personal repos and repos where user is collaborator
+      const userRepos = await fetch('https://api.github.com/user/repos?per_page=100&sort=updated', { headers: h }).then(r => r.json());
+      if (Array.isArray(userRepos)) {
+        userRepos.forEach(repo => allRepos.set(repo.id, repo));
+      }
+
+      // Fetch organizations and their repos
+      try {
+        const orgs = await fetch('https://api.github.com/user/orgs?per_page=100', { headers: h }).then(r => r.json());
+        if (Array.isArray(orgs)) {
+          for (const org of orgs) {
+            const orgRepos = await fetch(`https://api.github.com/orgs/${org.login}/repos?per_page=100&type=all`, { headers: h }).then(r => r.json());
+            if (Array.isArray(orgRepos)) {
+              orgRepos.forEach(repo => allRepos.set(repo.id, repo));
+            }
+          }
+        }
+      } catch {
+        // If org repos fail, continue with personal repos
+      }
+
+      // Convert Map to array, filter for push permissions, and sort
+      const data = Array.from(allRepos.values())
+        .filter(r => r.permissions?.push)
+        .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+      setRepos(data);
     } catch { setError('Failed to load repositories'); }
     setReposLoading(false);
   };
