@@ -7,6 +7,7 @@ import RepoPickerModal from './components/RepoPickerModal';
 import SuccessModal from './components/SuccessModal';
 import GuideSections from './components/GuideSections';
 import KBGuideSections from './components/KBGuideSections';
+import { openAuthPopup } from './widget/auth-popup';
 
 function ConfigWarning() {
   return (
@@ -22,7 +23,7 @@ function ConfigWarning() {
   );
 }
 
-export default function App() {
+export default function App({ embedded = false, ghToken: externalToken, authOrigin } = {}) {
   const [section, setSection] = useState('skills');
   const [view, setView] = useState('browse');
   const [skills, setSkills] = useState([]);
@@ -32,7 +33,7 @@ export default function App() {
   const [selected, setSelected] = useState(new Set());
   const [search, setSearch] = useState('');
   const [catFilter, setCatFilter] = useState('All');
-  const [ghToken, setGhToken] = useState(localStorage.getItem('gh_token') || '');
+  const [ghToken, setGhToken] = useState(externalToken || localStorage.getItem('gh_token') || '');
   const [ghUser, setGhUser] = useState(null);
   const [repos, setRepos] = useState([]);
   const [reposLoading, setReposLoading] = useState(false);
@@ -61,7 +62,14 @@ export default function App() {
       .catch(() => { setKnowledgebases([]); setLoadingKBs(false); });
   }, [isConfigured]);
 
+  // Sync token from external prop (for embedded mode)
   useEffect(() => {
+    if (externalToken && externalToken !== ghToken) setGhToken(externalToken);
+  }, [externalToken]);
+
+  // Handle OAuth redirect code (standalone mode only)
+  useEffect(() => {
+    if (embedded) return;
     const p = new URLSearchParams(window.location.search);
     const code = p.get('code');
     if (code && !ghToken) {
@@ -101,6 +109,12 @@ export default function App() {
   const toggle = useCallback(id => setSelected(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; }), []);
 
   const loginWithGitHub = () => {
+    if (embedded) {
+      openAuthPopup({ authOrigin })
+        .then(token => { setGhToken(token); localStorage.setItem('gh_token', token); })
+        .catch(err => { if (err.message !== 'Authentication cancelled') setError(err.message); });
+      return;
+    }
     const clientId = 'Ov23lictx0nzL5xiXx2D';
     window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&scope=repo`;
   };
