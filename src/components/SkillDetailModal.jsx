@@ -16,6 +16,7 @@ export default function SkillDetailModal({ skill, contentType, onClose, onToggle
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('preview');
   const [copied, setCopied] = useState(null);
+  const [narrative, setNarrative] = useState('');
   const c = CAT_COLORS[skill.category] || defaultColors;
 
   const isKB = contentType === 'knowledgebases';
@@ -86,7 +87,17 @@ export default function SkillDetailModal({ skill, contentType, onClose, onToggle
     return html;
   };
 
-  const tabs = [['preview', 'Preview'], ['install', 'Install & Share'], ['create', 'Create Your Own']];
+  const buildSessionPrompt = () => {
+    const narrativePart = narrative.trim() ? `\n\n${narrative.trim()}` : '';
+    const label = isKB ? 'knowledgebase' : 'skill';
+    if (content) {
+      const body = content.replace(/^---[\s\S]*?---\n*/, '').trim();
+      return `For this session, please follow the ${skill.name} ${label} guidelines.${narrativePart}\n\n---\n\n${body}`;
+    }
+    return `For this session, please use the ${skill.name} ${label}.\n\nThis ${label} helps with: ${skill.description}\nTriggers: ${(skill.triggers || []).join(', ')}${narrativePart}`;
+  };
+
+  const tabs = [['preview', 'Preview'], ['install', 'Install & Share'], ['prompt', 'Start Session'], ['create', 'Create Your Own']];
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
@@ -312,6 +323,42 @@ The skill should reference the component and show Claude how to import and compo
                 <p className="text-xs text-brand-700 leading-relaxed">
                   Once Claude generates your skill, test it in your project. When it works well, open a PR to <code className="bg-brand-100 px-1 rounded">pandotic/pando-skillo</code> — add the SKILL.md to <code className="bg-brand-100 px-1 rounded">skills/your-skill/</code> and an entry to <code className="bg-brand-100 px-1 rounded">skills-manifest.json</code>. Your name shows up as the author.
                 </p>
+              </div>
+            </div>
+          )}
+
+          {tab === 'prompt' && (
+            <div className="space-y-4">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <h4 className="font-semibold text-surface-900 text-sm">Session-start prompt</h4>
+                    <p className="text-xs text-surface-500 mt-0.5">Paste into Claude.ai or Claude Code to activate this {isKB ? 'knowledgebase' : 'skill'}</p>
+                  </div>
+                  <button
+                    onClick={() => copyToClipboard(buildSessionPrompt(), 'session-prompt')}
+                    disabled={loading}
+                    className="flex items-center gap-1.5 bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700 disabled:opacity-40 transition-colors flex-shrink-0">
+                    {copied === 'session-prompt' ? <><Icons.Check /> Copied!</> : <><Icons.Copy /> Copy Prompt</>}
+                  </button>
+                </div>
+                {loading
+                  ? <div className="flex items-center justify-center py-10 text-surface-400"><Icons.Loader /><span className="ml-2 text-sm">Loading...</span></div>
+                  : <pre className="bg-surface-50 border border-surface-200 rounded-lg p-4 text-xs font-mono text-surface-700 whitespace-pre-wrap leading-relaxed overflow-y-auto max-h-64">{buildSessionPrompt()}</pre>
+                }
+              </div>
+
+              <div className="border-t border-surface-100 pt-4">
+                <label className="text-sm font-medium text-surface-700 block mb-1.5">
+                  Add context <span className="font-normal text-surface-400">(optional — updates the prompt above)</span>
+                </label>
+                <textarea
+                  value={narrative}
+                  onChange={e => setNarrative(e.target.value)}
+                  placeholder={`e.g. I'm working on a Next.js SaaS app in TypeScript and need help with ${(skill.triggers || [])[0] || 'this task'}...`}
+                  className="w-full text-sm bg-surface-50 border border-surface-200 rounded-lg px-3 py-2.5 text-surface-800 placeholder:text-surface-400 focus:outline-none focus:border-brand-400 resize-none"
+                  rows={3}
+                />
               </div>
             </div>
           )}
